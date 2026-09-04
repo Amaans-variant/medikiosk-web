@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: theme('colors.surface.DEFAULT');
+    color: theme('colors.text.DEFAULT');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Utilities for smooth animations without bounce */
+@layer utilities {
+  .animate-press {
+    transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  }
+  .animate-press:active {
+    transform: scale(0.98);
+    box-shadow: theme('boxShadow.inner');
+  }
+}
