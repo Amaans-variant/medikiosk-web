@@ -1,6 +1,19 @@
 import { useState } from 'react'
-import { Pencil, Send, AlertTriangle, FileCheck2, UserRound } from 'lucide-react'
+import { Pencil, Send, AlertTriangle, FileCheck2, UserRound, Gauge } from 'lucide-react'
 import { useKioskStore } from '../../store/useKioskStore'
+
+function getUrgency(severity) {
+  if (severity == null) {
+    return { key: 'pending', bar: 'bg-line-strong', pillBg: 'bg-surface-sunk', pillText: 'text-ink-faint', label: 'Pending' }
+  }
+  if (severity >= 8) {
+    return { key: 'high', bar: 'bg-alert-500', pillBg: 'bg-alert-50', pillText: 'text-alert-600', label: 'High' }
+  }
+  if (severity >= 4) {
+    return { key: 'moderate', bar: 'bg-caution-500', pillBg: 'bg-caution-50', pillText: 'text-caution-600', label: 'Moderate' }
+  }
+  return { key: 'routine', bar: 'bg-signal-500', pillBg: 'bg-signal-50', pillText: 'text-signal-600', label: 'Routine' }
+}
 
 export default function ConsultPanel({ onPushed }) {
   const { state, amendRecord, pushToEmr } = useKioskStore()
@@ -19,6 +32,8 @@ export default function ConsultPanel({ onPushed }) {
   const hpiText = `${patient.complaint.symptomLabel} for ${patient.complaint.duration?.toLowerCase()}, severity ${
     patient.complaint.severity
   }/10.${patient.complaint.associated.length ? ' Associated with ' + patient.complaint.associated.join(', ').toLowerCase() + '.' : ''}`
+
+  const urgency = getUrgency(patient.complaint.severity)
 
   const startAmend = () => {
     setDraftHpi(patient.hpiOverride ?? hpiText)
@@ -58,97 +73,139 @@ export default function ConsultPanel({ onPushed }) {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-5 no-scrollbar">
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide">
-              Chief complaint &amp; HPI
-            </p>
-            {!amending && (
-              <button
-                onClick={startAmend}
-                className="tap flex items-center gap-1 text-xs font-medium text-clinic-700 hover:text-clinic-600"
-              >
-                <Pencil size={12} />
-                Amend
-              </button>
-            )}
-          </div>
+      <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <section className="rounded-2xl border border-line bg-surface p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide">
+                Chief complaint &amp; HPI
+              </p>
+              {!amending && (
+                <button
+                  onClick={startAmend}
+                  className="tap flex items-center gap-1 text-xs font-medium text-clinic-700 hover:text-clinic-600"
+                >
+                  <Pencil size={12} />
+                  Amend
+                </button>
+              )}
+            </div>
 
-          {amending ? (
-            <div>
-              <textarea
-                value={draftHpi}
-                onChange={(e) => setDraftHpi(e.target.value)}
-                rows={4}
-                className="w-full rounded-lg border border-line-strong p-3 text-sm text-ink outline-none focus-visible:outline-clinic-500 resize-none"
-              />
-              <div className="flex justify-end gap-2 mt-2">
-                <button
-                  onClick={() => setAmending(false)}
-                  className="tap h-9 px-3 rounded-lg text-sm text-ink-soft hover:bg-surface-sunk"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveAmend}
-                  className="tap h-9 px-3 rounded-lg text-sm font-medium bg-ink text-white hover:bg-ink/90"
-                >
-                  Save
-                </button>
+            {amending ? (
+              <div>
+                <textarea
+                  value={draftHpi}
+                  onChange={(e) => setDraftHpi(e.target.value)}
+                  rows={4}
+                  className="w-full rounded-lg border border-line-strong p-3 text-sm text-ink outline-none focus-visible:outline-clinic-500 resize-none"
+                />
+                <div className="flex justify-end gap-2 mt-2">
+                  <button
+                    onClick={() => setAmending(false)}
+                    className="tap h-9 px-3 rounded-lg text-sm text-ink-soft hover:bg-surface-sunk"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveAmend}
+                    className="tap h-9 px-3 rounded-lg text-sm font-medium bg-ink text-white hover:bg-ink/90"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-ink leading-relaxed">{patient.hpiOverride ?? hpiText}</p>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-line bg-surface p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Gauge size={14} className="text-ink-faint" />
+              <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide">Triage summary</p>
+            </div>
+
+            <div className="flex items-center gap-3 mb-4">
+              <span className={`text-2xl font-bold tabular-nums ${urgency.pillText}`}>
+                {patient.complaint.severity != null ? `${patient.complaint.severity}/10` : '—'}
+              </span>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${urgency.pillBg} ${urgency.pillText}`}>
+                {urgency.label}
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-ink-faint">Duration</span>
+                <span className="text-ink font-medium">{patient.complaint.duration ?? '—'}</span>
+              </div>
+              <div>
+                <p className="text-sm text-ink-faint mb-1.5">Associated symptoms</p>
+                {patient.complaint.associated.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {patient.complaint.associated.map((sym, i) => (
+                      <span
+                        key={i}
+                        className="text-xs font-medium text-ink-soft bg-surface-sunk px-2 py-1 rounded-full"
+                      >
+                        {sym}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-ink">None reported</span>
+                )}
               </div>
             </div>
-          ) : (
-            <p className="text-sm text-ink leading-relaxed">{patient.hpiOverride ?? hpiText}</p>
-          )}
-        </section>
+          </section>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-3">
-            Extracted medications
-          </p>
-          {patient.documents.medications.length > 0 ? (
-            <ul className="divide-y divide-line -mx-1">
-              {patient.documents.medications.map((m, i) => (
-                <li key={i} className="px-1 py-2.5 flex items-center justify-between">
-                  <span className="text-sm text-ink">
-                    {m.name} {m.dose}
-                  </span>
-                  <span className="text-xs text-ink-soft">
-                    {m.frequency} · {m.note}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-ink-faint">No medications on file</p>
-          )}
-        </section>
+          <section className="rounded-2xl border border-line bg-surface p-5 lg:col-span-2">
+            <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-3">
+              Extracted medications
+            </p>
+            {patient.documents.medications.length > 0 ? (
+              <ul className="divide-y divide-line -mx-1">
+                {patient.documents.medications.map((m, i) => (
+                  <li key={i} className="px-1 py-2.5 flex items-center justify-between">
+                    <span className="text-sm text-ink">
+                      {m.name} {m.dose}
+                    </span>
+                    <span className="text-xs text-ink-soft">
+                      {m.frequency} · {m.note}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-ink-faint">No medications on file</p>
+            )}
+          </section>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-3">Flagged lab values</p>
-          {patient.documents.labValues.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {patient.documents.labValues.map((l, i) => (
-                <span
-                  key={i}
-                  className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full ${
-                    l.flag === 'high'
-                      ? 'bg-alert-50 text-alert-600'
-                      : l.flag === 'low'
-                      ? 'bg-caution-50 text-caution-500'
-                      : 'bg-surface-sunk text-ink-soft'
-                  }`}
-                >
-                  {l.flag !== 'normal' && <AlertTriangle size={12} />}
-                  {l.test}: {l.value}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-ink-faint">No lab reports on file</p>
-          )}
-        </section>
+          <section className="rounded-2xl border border-line bg-surface p-5 lg:col-span-2">
+            <p className="text-xs font-semibold text-ink-faint uppercase tracking-wide mb-3">Flagged lab values</p>
+            {patient.documents.labValues.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {patient.documents.labValues.map((l, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full ${
+                      l.flag === 'high'
+                        ? 'bg-alert-50 text-alert-600'
+                        : l.flag === 'low'
+                        ? 'bg-caution-50 text-caution-500'
+                        : 'bg-surface-sunk text-ink-soft'
+                    }`}
+                  >
+                    {l.flag !== 'normal' && <AlertTriangle size={12} />}
+                    {l.test}: {l.value}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-ink-faint">No lab reports on file</p>
+            )}
+          </section>
+        </div>
       </div>
 
       <div className="px-6 py-4 border-t border-line flex items-center justify-end gap-3 bg-surface">
