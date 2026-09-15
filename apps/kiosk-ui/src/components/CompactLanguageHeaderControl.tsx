@@ -26,7 +26,7 @@ const SUPPORTED_LANGUAGES: LanguageOption[] = [
 ];
 
 export default function CompactLanguageHeaderControl() {
-  const { language, setLanguage, preferredLanguage } = useKioskStore();
+  const { language, setLanguage, setDisplayLanguage, preferredLanguage } = useKioskStore();
   const [isOpen, setIsOpen] = useState(false);
 
   const currentOption = SUPPORTED_LANGUAGES.find(l => l.code === language) || {
@@ -45,10 +45,10 @@ export default function CompactLanguageHeaderControl() {
   const handleToggleEnglishFallback = () => {
     if (language === "en") {
       // Return to preferred language
-      setLanguage(preferredLanguage || "hi");
+      setDisplayLanguage(preferredLanguage || "hi");
     } else {
       // Temporary fallback to English without overwriting preferredLanguage
-      setLanguage("en");
+      setDisplayLanguage("en");
     }
   };
 

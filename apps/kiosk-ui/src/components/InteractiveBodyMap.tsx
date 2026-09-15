@@ -194,7 +194,8 @@ export const SYSTEMIC_COMPLAINTS = [
 ];
 
 interface InteractiveBodyMapProps {
-  selectedRegionId: string | null;
+  selectedRegionIds: string[];
+  activeRegionId: string | null;
   selectedSubregionId?: string | null;
   selectedLaterality?: "left" | "right" | "both" | "middle" | "none" | null;
   language: string;
@@ -204,7 +205,8 @@ interface InteractiveBodyMapProps {
 }
 
 export default function InteractiveBodyMap({
-  selectedRegionId,
+  selectedRegionIds,
+  activeRegionId,
   selectedSubregionId,
   selectedLaterality,
   language,
@@ -216,7 +218,7 @@ export default function InteractiveBodyMap({
 
   const isHindi = language === "hi";
 
-  const selectedRegionData = ANATOMICAL_MAP_REGIONS.find((r) => r.id === selectedRegionId);
+  const selectedRegionData = ANATOMICAL_MAP_REGIONS.find((r) => r.id === activeRegionId);
 
   const filterRegion = (r: AnatomicalRegionData) => {
     if (r.view === "both") return true;
@@ -288,7 +290,7 @@ export default function InteractiveBodyMap({
                 r="28"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "head" || selectedRegionId === "face"
+                  selectedRegionIds.includes("head") || selectedRegionIds.includes("face")
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -304,7 +306,7 @@ export default function InteractiveBodyMap({
                 rx="4"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "neck"
+                  selectedRegionIds.includes("neck")
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -320,7 +322,7 @@ export default function InteractiveBodyMap({
                 rx="6"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "chest" || (viewMode === "back" && selectedRegionId === "back")
+                  selectedRegionIds.includes("chest") || (viewMode === "back" && selectedRegionIds.includes("back"))
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -342,7 +344,7 @@ export default function InteractiveBodyMap({
                 rx="6"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "upper_abdomen" || selectedRegionId === "lower_abdomen" || (viewMode === "back" && selectedRegionId === "back")
+                  selectedRegionIds.includes("upper_abdomen") || selectedRegionIds.includes("lower_abdomen") || (viewMode === "back" && selectedRegionIds.includes("back"))
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -364,7 +366,7 @@ export default function InteractiveBodyMap({
                 rx="6"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "hip"
+                  selectedRegionIds.includes("hip")
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -378,7 +380,7 @@ export default function InteractiveBodyMap({
                 r="14"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "knee"
+                  selectedRegionIds.includes("knee")
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -390,7 +392,7 @@ export default function InteractiveBodyMap({
                 r="14"
                 className={cn(
                   "cursor-pointer transition-all stroke-2",
-                  selectedRegionId === "knee"
+                  selectedRegionIds.includes("knee")
                     ? "fill-teal/40 stroke-teal animate-pulse"
                     : "fill-transparent stroke-slate-400 hover:fill-teal/20"
                 )}
@@ -412,7 +414,7 @@ export default function InteractiveBodyMap({
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {ANATOMICAL_MAP_REGIONS.filter(filterRegion).map((region) => {
-              const isSelected = selectedRegionId === region.id;
+              const isSelected = selectedRegionIds.includes(region.id);
               return (
                 <button
                   key={region.id}
@@ -449,7 +451,7 @@ export default function InteractiveBodyMap({
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {SYSTEMIC_COMPLAINTS.map((sys) => {
-                const isSelected = selectedRegionId === sys.id;
+                const isSelected = selectedRegionIds.includes(sys.id);
                 return (
                   <button
                     key={sys.id}

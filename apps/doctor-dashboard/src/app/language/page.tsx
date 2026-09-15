@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useKioskStore } from "@/store/kioskStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import { Volume2, Activity, ArrowRight, Check } from "lucide-react";
 
@@ -40,6 +41,7 @@ const VOICE_LANGUAGES: VoiceLanguageOption[] = [
 
 export default function LanguageScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { setLanguage, setVoiceLanguage, preferredLanguage, voiceLanguage } = useKioskStore();
   const [selectedUi, setSelectedUi] = useState<string>(preferredLanguage || "hi");
   const [selectedVoice, setSelectedVoice] = useState<string>(voiceLanguage || "hinglish");
@@ -84,7 +86,7 @@ export default function LanguageScreen() {
           <Activity className="w-8 h-8 text-white" />
         </div>
         <div className="flex items-center gap-2">
-          <h1 className="text-primary font-bold text-2xl sm:text-3xl tracking-tight">MediKiosk</h1>
+          <h1 className="text-primary font-bold text-2xl sm:text-3xl tracking-tight">{t("appName")}</h1>
           <span className="text-xs bg-teal-light text-teal font-semibold px-2 py-0.5 rounded-full border border-teal/20">
             AIIA OPD Intake
           </span>
@@ -111,14 +113,14 @@ export default function LanguageScreen() {
           >
             <Volume2 className="w-8 h-8" />
           </button>
-          <h2 className="text-text font-bold text-2xl sm:text-3xl mt-1">अपनी भाषा चुनें / Select Language</h2>
-          <p className="text-text-muted text-xs sm:text-sm">Large touch buttons designed for all patients & elderly accessibility</p>
+          <h2 className="text-text font-bold text-2xl sm:text-3xl mt-1">{t("selectLanguageTitle")}</h2>
+          <p className="text-text-muted text-xs sm:text-sm">{t("selectLanguageSubtitle")}</p>
         </div>
 
         {/* 1. UI Display Language Selection */}
         <div className="w-full space-y-3">
           <h3 className="text-sm font-bold text-primary uppercase tracking-wider font-mono">
-            1. Display Language (स्क्रीन की भाषा)
+            {t("displayLanguageStep")}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 w-full">
             {UI_LANGUAGES.map((lang) => {
@@ -152,10 +154,10 @@ export default function LanguageScreen() {
         <div className="w-full space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-teal uppercase tracking-wider font-mono">
-              2. Voice Speech Input (बोलने की आवाज)
+              {t("voiceLanguageStep")}
             </h3>
             <span className="text-[10px] bg-teal-light text-teal font-bold px-2 py-0.5 rounded">
-              Persisted Separately
+              {t("persistedSeparately")}
             </span>
           </div>
 
@@ -197,7 +199,7 @@ export default function LanguageScreen() {
           onClick={handleBegin}
           className="max-w-[720px] w-full bg-primary text-white font-bold text-lg sm:text-xl py-4 rounded-2xl shadow-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          <span>शुरू करें (Begin Clinical Intake)</span>
+          <span>{t("beginIntake")}</span>
           <ArrowRight className="w-5 h-5" />
         </button>
       </div>

@@ -146,7 +146,7 @@ export default function ChiefComplaintScreen() {
     <div className="min-h-screen bg-surface flex flex-col items-center pb-36">
       {/* 1. Progress Bar */}
       <div className="w-full max-w-6xl px-4 sm:px-8 pt-6">
-        <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2.5 w-full bg-border rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[50%] transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 flex justify-between items-center text-xs font-semibold text-text-muted">
@@ -287,7 +287,7 @@ export default function ChiefComplaintScreen() {
                 const val = Number(e.target.value);
                 setSeverity(val);
               }}
-              className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+              className="w-full h-3 bg-border rounded-lg appearance-none cursor-pointer accent-primary"
               aria-label="Symptom severity slider"
             />
 

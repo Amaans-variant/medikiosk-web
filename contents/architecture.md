@@ -597,3 +597,16 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 | **ORM** | SQLAlchemy 2.0 (async) | — | Mature, async support, Alembic migrations |
 | **Containerization** | Docker + docker-compose | — | Single-command deployment for demo and production |
 | **CI/CD** | GitHub Actions | — | Free for open-source, standard |
+
+---
+
+## 11. Frontend Auth, Theming & i18n Layer (Sept 2026 update)
+
+Ahead of a real backend, `apps/kiosk-ui` (mirrored to `apps/doctor-dashboard`)
+gained a **role-based sign-in gate**, a **persisted theme/i18n layer**, and a
+**chatbot widget**. This is documented in full — including exact backend
+integration points, current i18n coverage, and file manifests for both
+apps — in **`contents/frontend-integration.md`**. Backend engineers picking
+up auth, theming, or localization work should start there.
+
+

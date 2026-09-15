@@ -102,7 +102,7 @@ export class VoiceService {
     const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      callbacks.onError?.("not-supported", "We could not hear you clearly. (Browser speech recognition not supported)");
+      callbacks.onError?.("not-supported", "Voice recognition is not supported in this browser. Please use Google Chrome, or use the 'Type Instead' option.");
       return;
     }
 
@@ -153,7 +153,17 @@ export class VoiceService {
       };
 
       recognition.onerror = (event: { error: string }) => {
-        const friendlyMessage = "We could not hear you clearly. (हम आपकी आवाज़ स्पष्ट रूप से नहीं सुन सके)";
+        let friendlyMessage = "We could not hear you clearly. (हम आपकी आवाज़ स्पष्ट रूप से नहीं सुन सके)";
+        
+        if (event.error === 'not-allowed') {
+          friendlyMessage = "Microphone access denied. Please allow microphone permissions in your browser.";
+        } else if (event.error === 'network') {
+          friendlyMessage = "Network error. Speech recognition requires an active internet connection.";
+        } else if (event.error === 'no-speech') {
+          friendlyMessage = "No speech was detected. Please try speaking closer to the microphone.";
+        }
+        
+        console.error("[VoiceService] Speech recognition error:", event.error);
         callbacks.onError?.(event.error, friendlyMessage);
       };
 
@@ -163,8 +173,9 @@ export class VoiceService {
       };
 
       recognition.start();
-    } catch {
-      callbacks.onError?.("exception", "We could not hear you clearly. (हम आपकी आवाज़ स्पष्ट रूप से नहीं सुन सके)");
+    } catch (err: any) {
+      console.error("[VoiceService] Exception starting recognition:", err);
+      callbacks.onError?.("exception", "Speech recognition failed to start. (Exception: " + (err?.message || "Unknown") + ")");
     }
   }
 

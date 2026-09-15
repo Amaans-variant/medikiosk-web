@@ -210,7 +210,7 @@ export default function AyurvedaConsultationFlow({ onComplete }: Props) {
 
           <button
             onClick={() => playSpeech("Namaste. Dashavidha Pariksha mein aapka swagat hai. Kripya apne sharir aur aahar-vihar ke baare mein batayein.")}
-            className="flex items-center gap-1.5 text-xs font-bold bg-white text-teal border border-teal/30 px-3.5 py-2 rounded-xl shadow-xs hover:bg-teal-light self-start sm:self-auto"
+            className="flex items-center gap-1.5 text-xs font-bold bg-surface-card text-teal border border-teal/30 px-3.5 py-2 rounded-xl shadow-xs hover:bg-teal-light self-start sm:self-auto"
           >
             <Volume2 className="w-4 h-4" />
             <span>सुनें (Audio Guide)</span>
@@ -247,7 +247,7 @@ export default function AyurvedaConsultationFlow({ onComplete }: Props) {
             >
               <div className={cn(
                 "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
-                isActive ? "bg-white text-teal" : isDone ? "bg-teal text-white" : "bg-gray-200 text-text-muted"
+                isActive ? "bg-surface-card text-teal" : isDone ? "bg-teal text-white" : "bg-border text-text-muted"
               )}>
                 {isDone ? <Check className="w-3.5 h-3.5" /> : idx + 1}
               </div>
@@ -269,7 +269,7 @@ export default function AyurvedaConsultationFlow({ onComplete }: Props) {
               Spoken Response Recognized (वाणी पहचान)
             </span>
           </div>
-          <p className="text-sm font-semibold text-text bg-white p-3 rounded-xl border border-teal/30">
+          <p className="text-sm font-semibold text-text bg-surface-card p-3 rounded-xl border border-teal/30">
             &ldquo;{voiceTranscript}&rdquo;
           </p>
           <div className="flex items-center justify-between text-xs flex-wrap gap-2">

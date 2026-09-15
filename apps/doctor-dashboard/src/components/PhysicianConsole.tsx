@@ -324,7 +324,7 @@ export default function PhysicianConsole() {
               {priorityCount > 0 && (
                 <span className={cn(
                   "px-1.5 py-0.2 rounded-full text-[10px]",
-                  queueTab === "PRIORITY" ? "bg-white text-alert" : "bg-alert/15 text-alert"
+                  queueTab === "PRIORITY" ? "bg-surface-card text-alert" : "bg-alert/15 text-alert"
                 )}>
                   {priorityCount}
                 </span>
@@ -343,7 +343,7 @@ export default function PhysicianConsole() {
               <span>Waiting</span>
               <span className={cn(
                 "px-1.5 py-0.2 rounded-full text-[10px]",
-                queueTab === "WAITING" ? "bg-white text-primary" : "bg-primary/10 text-primary"
+                queueTab === "WAITING" ? "bg-surface-card text-primary" : "bg-primary/10 text-primary"
               )}>
                 {waitingCount}
               </span>
@@ -362,7 +362,7 @@ export default function PhysicianConsole() {
               {reinterviewCount > 0 && (
                 <span className={cn(
                   "px-1.5 py-0.2 rounded-full text-[10px]",
-                  queueTab === "REINTERVIEW" ? "bg-white text-blue-700" : "bg-blue-100 text-blue-800"
+                  queueTab === "REINTERVIEW" ? "bg-surface-card text-blue-700" : "bg-blue-100 text-blue-800"
                 )}>
                   {reinterviewCount}
                 </span>
@@ -381,7 +381,7 @@ export default function PhysicianConsole() {
               <span>Verified</span>
               <span className={cn(
                 "px-1.5 py-0.2 rounded-full text-[10px]",
-                queueTab === "COMPLETED" ? "bg-white text-teal" : "bg-teal-light text-teal"
+                queueTab === "COMPLETED" ? "bg-surface-card text-teal" : "bg-teal-light text-teal"
               )}>
                 {completedCount}
               </span>
@@ -400,7 +400,7 @@ export default function PhysicianConsole() {
               {rejectedCount > 0 && (
                 <span className={cn(
                   "px-1.5 py-0.2 rounded-full text-[10px]",
-                  queueTab === "REJECTED" ? "bg-white text-rose-700" : "bg-rose-100 text-rose-800"
+                  queueTab === "REJECTED" ? "bg-surface-card text-rose-700" : "bg-rose-100 text-rose-800"
                 )}>
                   {rejectedCount}
                 </span>
@@ -729,7 +729,7 @@ export default function PhysicianConsole() {
                     Urgent Clinical Assessment Recommended
                   </span>
                 </div>
-                <div className="p-3 bg-white/70 rounded-xl border border-alert/20 text-xs text-alert font-semibold">
+                <div className="p-3 bg-surface-card/70 rounded-xl border border-alert/20 text-xs text-alert font-semibold">
                   Reason for priority: Potential emergency symptoms reported — urgent clinical assessment recommended.
                 </div>
               </div>
@@ -844,7 +844,7 @@ export default function PhysicianConsole() {
                       <span className="text-[11px] text-text-muted font-medium block">Severity Index (0-10)</span>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-lg font-black text-alert">{patient.complaint.severity || 5}/10</span>
-                        <div className="flex-1 bg-gray-200 h-2 rounded-full overflow-hidden">
+                        <div className="flex-1 bg-border h-2 rounded-full overflow-hidden">
                           <div 
                             className="bg-alert h-full rounded-full" 
                             style={{ width: `${((patient.complaint.severity || 5) / 10) * 100}%` }}

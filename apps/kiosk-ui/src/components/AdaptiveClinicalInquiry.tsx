@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ControlledClinicalHistory } from "@/modules/history-engine/types";
+import { useKioskStore } from "@/store/kioskStore";
 
 interface Props {
   complaintId: string;
@@ -40,6 +41,9 @@ export default function AdaptiveClinicalInquiry({ complaintId, onHistoryUpdate }
   const [engine, setEngine] = useState(() => new ConversationalHistoryEngine(pathwayKey));
   const [engineState, setEngineState] = useState(() => engine.getState());
   
+  const { language } = useKioskStore();
+  const isEn = language === "en";
+
   // Voice interaction states
   const [isListening, setIsListening] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
@@ -250,10 +254,10 @@ export default function AdaptiveClinicalInquiry({ complaintId, onHistoryUpdate }
                 Eliciting: {currentQ.field.toUpperCase()}
               </span>
               <h4 className="text-xl sm:text-2xl font-extrabold text-text mt-1 leading-snug">
-                {currentQ.promptHi}
+                {isEn ? currentQ.promptEn : currentQ.promptHi}
               </h4>
               <p className="text-sm text-text-muted mt-0.5 font-medium">
-                {currentQ.promptEn}
+                {isEn ? currentQ.promptHi : currentQ.promptEn}
               </p>
             </div>
 
@@ -462,10 +466,10 @@ export default function AdaptiveClinicalInquiry({ complaintId, onHistoryUpdate }
                   className="flex flex-col items-start p-4 rounded-2xl border-2 border-border bg-surface hover:border-primary hover:bg-primary-light transition-all text-left group animate-press min-h-[76px] justify-center"
                 >
                   <span className="font-bold text-text text-base leading-tight group-hover:text-primary">
-                    {choice.labelHi}
+                    {isEn ? choice.labelEn : choice.labelHi}
                   </span>
                   <span className="text-xs text-text-muted font-medium mt-1">
-                    {choice.labelEn}
+                    {isEn ? choice.labelHi : choice.labelEn}
                   </span>
                 </button>
               ))}

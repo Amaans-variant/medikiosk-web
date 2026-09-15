@@ -37,7 +37,7 @@ export default function SummaryStep() {
     <div className="min-h-screen bg-surface flex flex-col items-center pb-32">
       {/* Progress Bar (100% Complete) */}
       <div className="w-full max-w-[1024px] px-8 pt-6">
-        <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2.5 w-full bg-border rounded-full overflow-hidden">
           <div className="h-full bg-teal w-full transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 text-teal text-sm font-bold flex items-center justify-between">

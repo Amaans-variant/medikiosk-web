@@ -264,7 +264,7 @@ export default function HospitalAnalytics() {
             </div>
           </div>
 
-          <div className="flex items-baseline gap-2 bg-white px-5 py-3 rounded-2xl border border-primary/20 shadow-xs">
+          <div className="flex items-baseline gap-2 bg-surface-card px-5 py-3 rounded-2xl border border-primary/20 shadow-xs">
             <span className="text-3xl sm:text-4xl font-black text-primary font-mono">
               ~{timeSaved.totalHoursSaved}
             </span>
@@ -274,26 +274,26 @@ export default function HospitalAnalytics() {
 
         {/* Calculation Visualizer Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="bg-white p-4 rounded-xl border border-border shadow-xs space-y-1">
+          <div className="bg-surface-card p-4 rounded-xl border border-border shadow-xs space-y-1">
             <span className="text-text-muted block font-semibold">1. Standard Manual History</span>
             <div className="text-lg font-bold text-rose-700">~{timeSaved.manualMinutesPerPatient} minutes / patient</div>
             <p className="text-[11px] text-text-muted">Typing, handwriting, and verbatim verbal querying during consult.</p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-border shadow-xs space-y-1">
+          <div className="bg-surface-card p-4 rounded-xl border border-border shadow-xs space-y-1">
             <span className="text-text-muted block font-semibold">2. MediKiosk + Doctor Review</span>
             <div className="text-lg font-bold text-teal">~{timeSaved.aiDocReviewMinutesPerPatient} minutes / patient</div>
             <p className="text-[11px] text-text-muted">Kiosk self-intake + doctor reviewing & confirming pre-structured HPI draft.</p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-border shadow-xs space-y-1">
+          <div className="bg-surface-card p-4 rounded-xl border border-border shadow-xs space-y-1">
             <span className="text-text-muted block font-semibold">3. Net Doctor Capacity Gain</span>
             <div className="text-lg font-bold text-primary">+{timeSaved.doctorCapacityGainPct}% Consultation Velocity</div>
             <p className="text-[11px] text-text-muted">Physicians can spend more time on clinical examination & counseling.</p>
           </div>
         </div>
 
-        <div className="p-3 bg-white/80 rounded-xl border border-primary/10 text-[11px] text-text-muted italic flex items-center gap-2">
+        <div className="p-3 bg-surface-card/80 rounded-xl border border-primary/10 text-[11px] text-text-muted italic flex items-center gap-2">
           <Info className="w-3.5 h-3.5 text-primary shrink-0" />
           <span>{timeSaved.disclaimer}</span>
         </div>

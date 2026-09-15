@@ -209,7 +209,7 @@ export default function DocumentStep() {
     <div className="min-h-screen bg-surface flex flex-col items-center pb-32">
       {/* Progress Bar */}
       <div className="w-full max-w-[1024px] px-4 sm:px-8 pt-6">
-        <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-border rounded-full overflow-hidden">
           <div className="h-full bg-teal w-[75%] transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 text-text-muted text-xs sm:text-sm font-medium flex justify-between items-center">
@@ -358,7 +358,7 @@ export default function DocumentStep() {
               {SCAN_STEPS[messageIdx]}
             </h3>
             
-            <div className="w-full max-w-md h-3 bg-gray-200 rounded-full overflow-hidden mt-4">
+            <div className="w-full max-w-md h-3 bg-border rounded-full overflow-hidden mt-4">
               <div 
                 className="h-full bg-teal transition-all duration-100 ease-out" 
                 style={{ width: `${progress}%` }} 
@@ -577,7 +577,7 @@ export default function DocumentStep() {
                                   <span>{m.name}</span>
                                   <span className="text-xs text-text-muted font-normal">({m.dose})</span>
                                   {m.source === 'reported' ? (
-                                    <span className="text-[10px] bg-gray-100 text-text-muted px-1.5 py-0.2 rounded">
+                                    <span className="text-[10px] bg-surface text-text-muted px-1.5 py-0.2 rounded">
                                       Manual
                                     </span>
                                   ) : (

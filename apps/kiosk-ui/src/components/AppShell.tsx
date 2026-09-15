@@ -5,10 +5,11 @@ import TopBar from "./TopBar";
 import PhysicianConsole from "./PhysicianConsole";
 import HospitalAnalytics from "./HospitalAnalytics";
 import SIHDemoControlBar from "./SIHDemoControlBar";
+import ChatbotWidget from "./chatbot/ChatbotWidget";
 import { useKioskStore } from "@/store/kioskStore";
 import { cn } from "@/lib/utils";
 import { Clock, RefreshCw } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const KIOSK_IDLE_TIMEOUT_MS = 180000; // 3 Minutes Idle Timeout
 
@@ -17,10 +18,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [isExpiredModalOpen, setIsExpiredModalOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // The role login screen ("/") is a pre-auth gate: no hospital TopBar,
+  // demo control bar, or kiosk idle-timeout modal — just the login card
+  // and the chatbot. Every other route keeps the existing shell exactly
+  // as before (zero change to that behavior).
+  const isAuthGate = pathname === "/";
 
   // Reset idle timer on user interactions in kiosk mode
   useEffect(() => {
-    if (activeView !== "kiosk") {
+    if (isAuthGate || activeView !== "kiosk") {
       if (timerRef.current) clearTimeout(timerRef.current);
       return;
     }
@@ -43,13 +51,30 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (timerRef.current) clearTimeout(timerRef.current);
       events.forEach(event => window.removeEventListener(event, resetIdleTimer));
     };
-  }, [activeView, currentPatient]);
+  }, [isAuthGate, activeView, currentPatient]);
 
   const handleStartNewPatient = () => {
     resetPatientSession();
     setIsExpiredModalOpen(false);
     router.push("/language");
   };
+
+  if (isAuthGate) {
+    // Lean shell for the pre-auth role login screen: no hospital chrome,
+    // just the page content plus the persistent chatbot.
+    return (
+      <div
+        className={cn(
+          "min-h-screen flex flex-col bg-surface transition-all",
+          easyView && "text-lg tracking-wide [font-size:115%]",
+          highContrast && "bg-slate-950 text-yellow-300 contrast-125 font-bold"
+        )}
+      >
+        {children}
+        <ChatbotWidget />
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -96,6 +121,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       )}
+
+      <ChatbotWidget />
     </div>
   );
 }

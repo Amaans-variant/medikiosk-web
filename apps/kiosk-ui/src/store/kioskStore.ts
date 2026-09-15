@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { 
   Complaint, 
   RedFlag, 
@@ -155,6 +156,7 @@ interface KioskState {
   // Actions
   setView: (view: 'kiosk' | 'physician' | 'analytics') => void;
   setLanguage: (lang: string) => void;
+  setDisplayLanguage: (lang: string) => void;
   setVoiceLanguage: (voiceLang: string) => void;
   toggleEasyView: () => void;
   toggleHighContrast: () => void;
@@ -595,7 +597,14 @@ const SEED_QUEUE: PatientRecord[] = [
   }
 ];
 
-export const useKioskStore = create<KioskState>((set, get) => ({
+// Only language preferences are persisted (see `partialize` below). Patient
+// clinical data is intentionally kept in-memory only and never written to
+// localStorage on this shared kiosk device.
+export const KIOSK_LANGUAGE_STORAGE_KEY = "medikiosk_language_v1";
+
+export const useKioskStore = create<KioskState>()(
+  persist(
+    (set, get) => ({
   activeView: 'kiosk',
   language: 'hi',
   preferredLanguage: 'hi',
@@ -658,6 +667,7 @@ export const useKioskStore = create<KioskState>((set, get) => ({
         preferredLanguage: lang
       }
     })),
+  setDisplayLanguage: (lang) => set({ language: lang }),
   setVoiceLanguage: (voiceLang) =>
     set((state) => ({
       voiceLanguage: voiceLang,
@@ -1459,4 +1469,20 @@ export const useKioskStore = create<KioskState>((set, get) => ({
       }
     });
   }
-}));
+    }),
+    {
+      name: KIOSK_LANGUAGE_STORAGE_KEY,
+      storage: createJSONStorage(() => localStorage),
+      // This `partialize` is the actual fix for the "language reverts to the
+      // old context" bug: previously nothing about language was persisted,
+      // so a reload/new tab/navigation silently fell back to the default
+      // ('hi'). Only the three language fields are persisted — patient
+      // demographics, queue, and session data stay in-memory only.
+      partialize: (state) => ({
+        language: state.language,
+        preferredLanguage: state.preferredLanguage,
+        voiceLanguage: state.voiceLanguage,
+      }),
+    }
+  )
+);
