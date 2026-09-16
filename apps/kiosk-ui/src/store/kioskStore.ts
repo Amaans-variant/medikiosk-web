@@ -606,8 +606,8 @@ export const useKioskStore = create<KioskState>()(
   persist(
     (set, get) => ({
   activeView: 'kiosk',
-  language: 'hi',
-  preferredLanguage: 'hi',
+  language: 'en',
+  preferredLanguage: 'en',
   voiceLanguage: 'hinglish',
   easyView: false,
   highContrast: false,

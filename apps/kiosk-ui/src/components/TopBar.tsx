@@ -115,20 +115,7 @@ export default function TopBar() {
             <span className="hidden md:inline">{theme === "dark" ? t("lightMode") : t("darkMode")}</span>
           </button>
 
-          {/* Easy View Toggle */}
-          <button
-            onClick={toggleEasyView}
-            className={cn(
-              "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border",
-              easyView 
-                ? "bg-primary text-white border-primary shadow-xs" 
-                : "bg-surface text-text border-border hover:bg-surface-card"
-            )}
-            title="Toggle Easy View (Larger Text & Controls for Elderly Patients)"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">{easyView ? `${t("easyView")} ON` : t("easyView")}</span>
-          </button>
+
 
           {/* High Contrast Toggle */}
           <button

@@ -42,16 +42,6 @@ export default function CompactLanguageHeaderControl() {
     setIsOpen(false);
   };
 
-  const handleToggleEnglishFallback = () => {
-    if (language === "en") {
-      // Return to preferred language
-      setDisplayLanguage(preferredLanguage || "hi");
-    } else {
-      // Temporary fallback to English without overwriting preferredLanguage
-      setDisplayLanguage("en");
-    }
-  };
-
   return (
     <div className="relative inline-block text-left z-40">
       <div className="flex items-center gap-1 bg-surface-card border border-border rounded-xl p-1 shadow-xs">
@@ -68,30 +58,6 @@ export default function CompactLanguageHeaderControl() {
           <ChevronDown className={cn("w-3.5 h-3.5 text-text-muted transition-transform duration-200", isOpen && "rotate-180")} />
         </button>
 
-        {/* Quick Toggle Button between Primary Language and English Fallback */}
-        {preferredLanguage !== "en" && (
-          <button
-            type="button"
-            onClick={handleToggleEnglishFallback}
-            aria-label={isTempEnglish ? `Return to ${preferredLanguage}` : "Quick switch to English"}
-            className={cn(
-              "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border",
-              isTempEnglish
-                ? "bg-amber-100 text-amber-900 border-amber-300"
-                : "bg-surface text-text-muted border-transparent hover:text-text"
-            )}
-            title={isTempEnglish ? `Return to ${preferredLanguage.toUpperCase()}` : "Temporary English Fallback"}
-          >
-            {isTempEnglish ? (
-              <>
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Return to {preferredLanguage.toUpperCase()}</span>
-              </>
-            ) : (
-              <span>English</span>
-            )}
-          </button>
-        )}
       </div>
 
       {/* Dropdown Menu */}

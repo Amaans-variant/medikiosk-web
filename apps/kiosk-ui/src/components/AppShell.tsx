@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import TopBar from "./TopBar";
 import PhysicianConsole from "./PhysicianConsole";
 import HospitalAnalytics from "./HospitalAnalytics";
-import SIHDemoControlBar from "./SIHDemoControlBar";
 import ChatbotWidget from "./chatbot/ChatbotWidget";
 import { useKioskStore } from "@/store/kioskStore";
 import { cn } from "@/lib/utils";
@@ -84,7 +83,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         highContrast && "bg-slate-950 text-yellow-300 contrast-125 font-bold"
       )}
     >
-      <SIHDemoControlBar />
       <TopBar />
       <div className="flex-1 flex flex-col">
         {activeView === 'analytics' ? (
