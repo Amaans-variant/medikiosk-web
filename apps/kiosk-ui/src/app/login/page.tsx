@@ -26,10 +26,16 @@ export default function LoginScreen() {
     setOtp(numeric);
   };
 
+  const isMobileReady = mobileNumber.length === 10;
+  const isAbhaReady = abhaIdInput.trim().length >= 8;
+  const canContinue = !isOtpMode ? (isMobileReady || isAbhaReady) : otp.length === 6;
+
   const handleNext = () => {
     if (!isOtpMode) {
-      if (mobileNumber.length === 10) {
+      if (isMobileReady) {
         setIsOtpMode(true);
+      } else if (isAbhaReady) {
+        handleAbhaManualSubmit();
       }
     } else {
       if (otp.length === 6) {
@@ -82,10 +88,10 @@ export default function LoginScreen() {
       {/* Progress Bar */}
       <div className="w-full max-w-[1024px] px-4 sm:px-8 pt-6">
         <div className="h-2 w-full bg-border rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[25%] transition-all duration-500 ease-out" />
+          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[60%] transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 text-text-muted text-xs sm:text-sm font-medium flex justify-between items-center">
-          <span>चरण 1 / 4 · मरीज़ की पहचान (Step 1 of 4 · Identity & ABHA)</span>
+          <span>चरण 3 / 5 · मरीज़ की पहचान (Step 3 of 5 · Identity & ABHA)</span>
           <span className="text-teal font-semibold">ABDM Verification</span>
         </div>
       </div>
@@ -93,7 +99,7 @@ export default function LoginScreen() {
       {/* Header Navigation */}
       <header className="w-full max-w-[1024px] px-4 sm:px-8 flex justify-between items-center mt-4 sm:mt-6">
         <button 
-          onClick={() => isOtpMode ? setIsOtpMode(false) : router.push("/consultation-type")}
+          onClick={() => isOtpMode ? setIsOtpMode(false) : router.push("/consent")}
           className="text-primary font-semibold text-base sm:text-lg flex items-center gap-1.5 animate-press"
         >
           <span className="text-xl">←</span> Peeche (Back)
@@ -212,6 +218,13 @@ export default function LoginScreen() {
                       value={abhaIdInput}
                       onChange={(e) => setAbhaIdInput(e.target.value)}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setAbhaIdInput("91-4412-8871-3319")}
+                      className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline mt-1.5 inline-block text-center w-full"
+                    >
+                      Demo Fill: 91-4412-8871-3319
+                    </button>
                   </div>
                 </div>
 
@@ -250,6 +263,13 @@ export default function LoginScreen() {
                       maxLength={10}
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileNumber("9876543210")}
+                    className="text-[11px] text-teal font-semibold hover:underline mt-1.5 inline-block text-center w-full"
+                  >
+                    Demo Fill: 98765 43210
+                  </button>
                 </div>
 
                 <div className="w-full pt-4">
@@ -345,10 +365,18 @@ export default function LoginScreen() {
       <div className="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-sm p-4 sm:p-5 flex justify-center border-t border-border z-40">
         <button 
           onClick={handleNext}
-          disabled={!isOtpMode ? mobileNumber.length !== 10 : otp.length !== 6}
+          disabled={!canContinue}
           className="max-w-[800px] w-full bg-primary text-white font-bold text-base sm:text-xl py-4 rounded-2xl shadow-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          <span>{isOtpMode ? "सत्यापित करें (Verify & Continue)" : "Aage Badhein (Continue to Complaint) →"}</span>
+          <span>
+            {isOtpMode 
+              ? "सत्यापित करें (Verify OTP & Continue) →" 
+              : isMobileReady 
+                ? "ओटीपी भेजें (Send OTP) →" 
+                : isAbhaReady 
+                  ? "ABHA सत्यापित करें (Verify ABHA & Continue) →" 
+                  : "Aage Badhein (Continue to Complaint) →"}
+          </span>
           <ArrowRight className="w-5 h-5" />
         </button>
       </div>

@@ -26,7 +26,8 @@ import {
   Building2,
   SlidersHorizontal,
   AlertCircle,
-  Siren
+  Siren,
+  ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -651,6 +652,18 @@ export default function PhysicianConsole() {
                       </span>
                       <span>·</span>
                       <span>{patient.mobile}</span>
+                      <span>·</span>
+                      {patient.consent?.status === "DECLINED" ? (
+                        <span className="flex items-center gap-1 text-[11px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-md border border-amber-200" title="Patient opted for paper consent">
+                          <AlertTriangle className="w-3 h-3 text-amber-600" />
+                          Paper Consent (Walk-in)
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[11px] bg-teal-light text-teal font-bold px-2 py-0.5 rounded-md border border-teal/20" title={`ABDM Digital Consent Verified under DPDP Act 2023 at ${patient.consent?.timestamp ? new Date(patient.consent.timestamp).toLocaleTimeString() : "Intake"}`}>
+                          <ShieldCheck className="w-3 h-3 text-teal" />
+                          ABDM Consent Verified
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

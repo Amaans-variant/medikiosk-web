@@ -147,13 +147,13 @@ export default function ChiefComplaintScreen() {
       {/* 1. Progress Bar */}
       <div className="w-full max-w-6xl px-4 sm:px-8 pt-6">
         <div className="h-2.5 w-full bg-border rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[50%] transition-all duration-500 ease-out" />
+          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[75%] transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 flex justify-between items-center text-xs font-semibold text-text-muted">
           <span>
             {consultationType === "ayurveda"
-              ? "Step 2 of 4 · आयुर्वेदिक लक्षण एवं दशविध परीक्षा (AYUSH Intake)"
-              : "Step 2 of 4 · Anatomical Pain Mapping (Modern Medicine)"}
+              ? "चरण 4 / 5 · आयुर्वेदिक लक्षण एवं दशविध परीक्षा (Step 4 of 5 · AYUSH Intake)"
+              : "चरण 4 / 5 · मुख्य लक्षण एवं दर्द मैपिंग (Step 4 of 5 · Clinical Symptoms)"}
           </span>
           <span className="text-teal font-bold bg-teal-light px-2.5 py-0.5 rounded-full border border-teal/20">
             {consultationType === "ayurveda" ? "🌿 Ayurveda Mode Active" : "🏥 Modern Medicine Mode"}

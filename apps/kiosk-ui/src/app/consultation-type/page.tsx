@@ -39,13 +39,26 @@ export default function ConsultationTypeScreen() {
 
   const handleContinue = () => {
     setConsultationType(selectedType);
-    router.push("/login");
+    router.push("/consent");
   };
 
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center pb-28">
+      {/* 5-Step Clinical Progress Bar */}
+      <div className="w-full max-w-[1024px] px-4 sm:px-8 pt-6">
+        <div className="h-2 w-full bg-border rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[20%] transition-all duration-500 ease-out" />
+        </div>
+        <div className="mt-2 text-text-muted text-xs sm:text-sm font-medium flex justify-between items-center">
+          <span className="font-semibold text-teal">चरण 1 / 5 · परामर्श प्रणाली (Step 1 of 5 · Stream Selection)</span>
+          <span className="text-xs bg-teal-light text-teal px-2 py-0.5 rounded border border-teal/20">
+            AIIA OPD Block
+          </span>
+        </div>
+      </div>
+
       {/* Top Header Navigation */}
-      <header className="w-full max-w-[1024px] px-8 pt-8 flex justify-between items-center">
+      <header className="w-full max-w-[1024px] px-4 sm:px-8 pt-4 sm:pt-6 flex justify-between items-center">
         <button 
           onClick={() => router.push("/language")}
           className="text-primary font-semibold text-base flex items-center gap-1.5 animate-press"
@@ -53,7 +66,7 @@ export default function ConsultationTypeScreen() {
           <span className="text-xl">←</span> भाषा बदलें (Language)
         </button>
         <span className="text-xs font-bold bg-teal-light text-teal px-3 py-1.5 rounded-full border border-teal/30">
-          AIIA MediKiosk Kiosk Block
+          AIIA MediKiosk
         </span>
       </header>
 

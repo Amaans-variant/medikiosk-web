@@ -156,6 +156,25 @@ export default function RoleLoginPage() {
                   </div>
                 </div>
 
+                <div className="flex items-center justify-between text-xs pt-1 pb-2">
+                  <span className="text-text-muted text-[11px]">Quick Fill Demo:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedRole === "doctor") {
+                        setIdentifier("Doc1");
+                        setSecret("1234");
+                      } else {
+                        setIdentifier("Hs1");
+                        setSecret("h1234");
+                      }
+                    }}
+                    className="text-primary font-bold text-xs hover:underline flex items-center gap-1"
+                  >
+                    <span>Use {selectedRole === "doctor" ? "Doc1 / 1234" : "Hs1 / h1234"}</span>
+                  </button>
+                </div>
+
                 {error && (
                   <p className="text-alert text-xs font-semibold bg-alert-light border border-alert/20 rounded-xl px-3 py-2">
                     {error}
@@ -184,11 +203,11 @@ export default function RoleLoginPage() {
               /* Patient — one big tap, no typing. Low-literacy / elderly
                  patients must never be asked to type an ID or password here
                  (see contents/prd.md "7 Laws of MediKiosk UI"). */
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} className="space-y-3">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-primary text-white font-bold text-lg sm:text-xl py-5 rounded-2xl shadow-md hover:bg-primary-dark transition-colors disabled:opacity-60 flex items-center justify-center gap-2.5"
+                  className="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-lg sm:text-xl py-5 rounded-2xl shadow-md hover:shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2.5 active:scale-[0.99]"
                 >
                   {isSubmitting ? (
                     <>
@@ -197,12 +216,15 @@ export default function RoleLoginPage() {
                     </>
                   ) : (
                     <>
-                      <UserRound className="w-5 h-5" />
-                      <span>{t("loginContinue")}</span>
+                      <UserRound className="w-6 h-6" />
+                      <span>शुरू करें · Start Check-in</span>
                       <ArrowRight className="w-5 h-5" />
                     </>
                   )}
                 </button>
+                <p className="text-center text-[12px] text-text-muted">
+                  निःशुल्क ओपीडी पर्ची पंजीकरण (Free Hospital OPD Token)
+                </p>
               </form>
             )}
 

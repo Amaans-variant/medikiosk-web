@@ -210,10 +210,10 @@ export default function DocumentStep() {
       {/* Progress Bar */}
       <div className="w-full max-w-[1024px] px-4 sm:px-8 pt-6">
         <div className="h-2 w-full bg-border rounded-full overflow-hidden">
-          <div className="h-full bg-teal w-[75%] transition-all duration-500 ease-out" />
+          <div className="h-full bg-teal w-[88%] transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 text-text-muted text-xs sm:text-sm font-medium flex justify-between items-center">
-          <span>चरण 3 / 4 · पर्ची व लैब रिपोर्ट (Step 3 of 4 · Documents & Labs)</span>
+          <span>चरण 5 / 5 · पर्ची व लैब रिपोर्ट (Step 5 of 5 · Documents & Labs)</span>
           <span className="text-teal font-bold">OCR & Clinical Extraction</span>
         </div>
       </div>
