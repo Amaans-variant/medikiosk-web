@@ -29,7 +29,7 @@ export default function TopBar() {
   return (
     <>
       <header className="min-h-16 shrink-0 border-b border-border bg-surface-card px-3 sm:px-6 py-2 sm:py-0 flex flex-wrap items-center justify-between gap-2 sm:gap-4 sticky top-0 z-50">
-        {/* Brand & Hospital Info */}
+        {/* Brand & Hospital Info with Role Console Badge */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-primary flex items-center justify-center shadow-xs shrink-0">
             <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -40,63 +40,31 @@ export default function TopBar() {
               <span className="text-[11px] bg-teal-light text-teal font-semibold px-2 py-0.5 rounded-full border border-teal/20">
                 AIIA · OPD Intake
               </span>
-              <span className="text-[10px] bg-amber-100 text-amber-900 font-bold font-mono px-2 py-0.5 rounded border border-amber-300">
-                {t("demoEnvironment")}
-              </span>
+
+              {/* Console Badge in place of Demo Environment */}
+              {user?.role === "doctor" ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-light border border-teal/30 text-teal text-xs font-bold shadow-xs select-none">
+                  <Stethoscope className="w-3.5 h-3.5 text-teal" />
+                  <span>{t("navDoctorConsole")}</span>
+                  {waitingCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold font-mono bg-teal text-white">
+                      {waitingCount}
+                    </span>
+                  )}
+                </div>
+              ) : user?.role === "admin" ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-light border border-primary/30 text-primary text-xs font-bold shadow-xs select-none">
+                  <BarChart3 className="w-3.5 h-3.5 text-primary" />
+                  <span>{t("navHospitalAnalytics")}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold shadow-xs select-none">
+                  <User className="w-3.5 h-3.5 text-primary" />
+                  <span>{t("navPatientIntake")}</span>
+                </div>
+              )}
             </div>
             <p className="text-[11px] text-text-muted">Ministry of Ayush · Govt. of India</p>
-          </div>
-        </div>
-
-        {/* Segmented Mode Switcher (3-Way: Patient Intake | Doctor Console | Hospital Analytics) */}
-        <div className="order-3 sm:order-none w-full sm:w-auto overflow-x-auto no-scrollbar">
-          <div className="flex items-center bg-surface border border-border p-1 rounded-xl w-max sm:w-auto">
-            <button
-              onClick={() => setView('kiosk')}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap",
-                activeView === 'kiosk'
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-text-muted hover:text-text"
-              )}
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("navPatientIntake")}</span>
-            </button>
-
-            <button
-              onClick={() => setView('physician')}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors relative whitespace-nowrap",
-                activeView === 'physician'
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-text-muted hover:text-text"
-              )}
-            >
-              <Stethoscope className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("navDoctorConsole")}</span>
-              {waitingCount > 0 && (
-                <span className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold font-mono",
-                  activeView === 'physician' ? "bg-white text-primary" : "bg-teal text-white"
-                )}>
-                  {waitingCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setView('analytics')}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap",
-                activeView === 'analytics'
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-text-muted hover:text-text"
-              )}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("navHospitalAnalytics")}</span>
-            </button>
           </div>
         </div>
 
@@ -115,10 +83,6 @@ export default function TopBar() {
             <span className="hidden md:inline">{theme === "dark" ? t("lightMode") : t("darkMode")}</span>
           </button>
 
-
-
-
-
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
             <span>ABDM Gateway Live</span>
@@ -134,38 +98,58 @@ export default function TopBar() {
           </button>
 
           {/* Signed-in user / Logout */}
-          {user && (
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu((v) => !v)}
-                className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:bg-surface-card transition-colors"
-              >
-                <span className="w-6 h-6 rounded-full bg-primary-light text-primary flex items-center justify-center text-[10px] font-black shrink-0">
-                  {user.displayName.charAt(0)}
-                </span>
-                <span className="hidden lg:inline">{user.displayName}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
-              </button>
+          {user ? (
+            <div className="flex items-center gap-1.5">
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu((v) => !v)}
+                  className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:bg-surface-card transition-colors"
+                >
+                  <span className="w-6 h-6 rounded-full bg-primary-light text-primary flex items-center justify-center text-[10px] font-black shrink-0">
+                    {user.displayName.charAt(0)}
+                  </span>
+                  <span className="hidden lg:inline">{user.displayName}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
+                </button>
 
-              {showUserMenu && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowUserMenu(false)} />
-                  <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-surface-card border border-border shadow-lg z-40 py-2 animate-fadeIn">
-                    <div className="px-3.5 py-2 border-b border-border mb-1">
-                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t("signedInAs")}</p>
-                      <p className="text-sm font-bold text-text truncate">{user.identifier}</p>
+                {showUserMenu && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setShowUserMenu(false)} />
+                    <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-surface-card border border-border shadow-lg z-40 py-2 animate-fadeIn">
+                      <div className="px-3.5 py-2 border-b border-border mb-1">
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t("signedInAs")}</p>
+                        <p className="text-sm font-bold text-text truncate">{user.identifier}</p>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full px-3.5 py-2 text-left text-xs font-bold text-alert flex items-center gap-2 hover:bg-alert-light transition-colors"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        {user.role === "patient" ? "Exit Intake" : t("logout")}
+                      </button>
                     </div>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-3.5 py-2 text-left text-xs font-bold text-alert flex items-center gap-2 hover:bg-alert-light transition-colors"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      {t("logout")}
-                    </button>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:text-alert hover:border-alert/40 transition-colors"
+                title={user.role === "patient" ? "Exit session and return to Sign In" : t("logout")}
+              >
+                <LogOut className="w-3.5 h-3.5 text-alert" />
+                <span className="hidden sm:inline">{user.role === "patient" ? "Exit" : t("logout")}</span>
+              </button>
             </div>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:text-alert hover:border-alert/40 transition-colors"
+              title="Sign In / Choose Role"
+            >
+              <LogOut className="w-3.5 h-3.5 text-alert" />
+              <span className="hidden sm:inline">Sign In</span>
+            </button>
           )}
         </div>
       </header>

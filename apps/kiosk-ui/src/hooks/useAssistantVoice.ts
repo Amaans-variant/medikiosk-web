@@ -2,17 +2,67 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const LANG_TO_BCP47: Record<string, string> = {
+export interface VoiceLanguageOption {
+  code: string;
+  label: string;
+  bcp47: string;
+  flag: string;
+}
+
+export const MULTILINGUAL_VOICE_LANGS: VoiceLanguageOption[] = [
+  { code: "auto", label: "Auto (Any Language)", bcp47: "hi-IN", flag: "🌐" },
+  { code: "hi", label: "हिन्दी (Hindi)", bcp47: "hi-IN", flag: "🇮🇳" },
+  { code: "en", label: "English", bcp47: "en-IN", flag: "🇬🇧" },
+  { code: "mr", label: "मराठी (Marathi)", bcp47: "mr-IN", flag: "🇮🇳" },
+  { code: "gu", label: "ગુજરાતી (Gujarati)", bcp47: "gu-IN", flag: "🇮🇳" },
+  { code: "bn", label: "বাংলা (Bengali)", bcp47: "bn-IN", flag: "🇮🇳" },
+  { code: "ta", label: "தமிழ் (Tamil)", bcp47: "ta-IN", flag: "🇮🇳" },
+  { code: "te", label: "తెలుగు (Telugu)", bcp47: "te-IN", flag: "🇮🇳" },
+  { code: "kn", label: "ಕನ್ನಡ (Kannada)", bcp47: "kn-IN", flag: "🇮🇳" },
+  { code: "ml", label: "മലയാളം (Malayalam)", bcp47: "ml-IN", flag: "🇮🇳" },
+  { code: "pa", label: "ਪੰਜਾਬੀ (Punjabi)", bcp47: "pa-IN", flag: "🇮🇳" },
+  { code: "ur", label: "اردو (Urdu)", bcp47: "ur-IN", flag: "🇮🇳" },
+  { code: "or", label: "ଓଡ଼ିଆ (Odia)", bcp47: "or-IN", flag: "🇮🇳" },
+  { code: "as", label: "অসমীয়া (Assamese)", bcp47: "as-IN", flag: "🇮🇳" },
+  { code: "bho", label: "भोजपुरी (Bhojpuri)", bcp47: "hi-IN", flag: "🇮🇳" },
+];
+
+export const LANG_TO_BCP47: Record<string, string> = {
   hi: "hi-IN",
   en: "en-IN",
   mr: "mr-IN",
   gu: "gu-IN",
   bn: "bn-IN",
   ta: "ta-IN",
+  te: "te-IN",
+  kn: "kn-IN",
+  ml: "ml-IN",
+  pa: "pa-IN",
+  ur: "ur-IN",
+  or: "or-IN",
+  as: "as-IN",
+  ne: "ne-NP",
+  sa: "sa-IN",
+  bho: "hi-IN",
 };
+
+export function detectScriptLanguage(text: string, defaultLang: string): string {
+  if (/[\u0900-\u097F]/.test(text)) return defaultLang === "mr-IN" ? "mr-IN" : "hi-IN";
+  if (/[\u0980-\u09FF]/.test(text)) return "bn-IN";
+  if (/[\u0A80-\u0AFF]/.test(text)) return "gu-IN";
+  if (/[\u0A00-\u0A7F]/.test(text)) return "pa-IN";
+  if (/[\u0B80-\u0BFF]/.test(text)) return "ta-IN";
+  if (/[\u0C00-\u0C7F]/.test(text)) return "te-IN";
+  if (/[\u0C80-\u0CFF]/.test(text)) return "kn-IN";
+  if (/[\u0D00-\u0D7F]/.test(text)) return "ml-IN";
+  if (/[\u0B00-\u0B7F]/.test(text)) return "or-IN";
+  if (/[\u0600-\u06FF]/.test(text)) return "ur-IN";
+  return defaultLang || "en-IN";
+}
 
 interface UseAssistantVoiceProps {
   language: string;
+  selectedVoiceLang?: string;
   onTranscriptComplete: (text: string) => void;
   onInterimTranscript?: (text: string) => void;
 }
@@ -37,6 +87,7 @@ interface ISpeechRecognitionInstance {
 
 export function useAssistantVoice({
   language,
+  selectedVoiceLang = "auto",
   onTranscriptComplete,
   onInterimTranscript,
 }: UseAssistantVoiceProps) {
@@ -70,7 +121,8 @@ export function useAssistantVoice({
     onCompleteRef.current = onTranscriptComplete;
   }, [onTranscriptComplete]);
 
-  const bcp47Lang = LANG_TO_BCP47[language] || "hi-IN";
+  const activeVoiceCode = selectedVoiceLang && selectedVoiceLang !== "auto" ? selectedVoiceLang : language;
+  const bcp47Lang = LANG_TO_BCP47[activeVoiceCode] || "hi-IN";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -159,7 +211,7 @@ export function useAssistantVoice({
         body: JSON.stringify({
           audioData: base64Data,
           mimeType: audioBlob.type || "audio/webm",
-          language,
+          language: activeVoiceCode || "auto",
         }),
       });
 
@@ -373,7 +425,7 @@ export function useAssistantVoice({
         if (!cleanText) return;
 
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = bcp47Lang;
+        utterance.lang = detectScriptLanguage(cleanText, bcp47Lang);
         utterance.rate = 0.95;
         utterance.pitch = 1.0;
 

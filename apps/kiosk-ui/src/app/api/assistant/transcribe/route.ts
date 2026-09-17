@@ -28,11 +28,14 @@ export async function POST(req: Request) {
       cleanMime = "audio/webm";
     }
 
-    const promptText = `Listen to this audio recording carefully.
-If someone is speaking, transcribe the exact spoken words verbatim in the original language (Hindi, English, Hinglish, Marathi, Gujarati, Tamil, etc.).
-Strict rules:
-- Output ONLY the transcribed text. Do NOT add notes, conversational replies, quotes, or markdown.
-- If the audio contains only silence, static, background noise, or no recognizable human speech, respond with EXACTLY: NO_SPEECH`;
+    const promptText = `You are an expert universal multilingual speech-to-text engine for a hospital healthcare kiosk.
+Listen to this audio recording carefully.
+The speaker can speak in ANY language, dialect, or code-mixed speech (including Hindi, English, Hinglish, Marathi, Gujarati, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi, Urdu, Odia, Assamese, Bhojpuri, or any global language).
+
+Instructions:
+1. Accurately transcribe the exact spoken words verbatim in the speaker's spoken language and native script (or standard roman script for Hinglish/code-mixed speech).
+2. Output ONLY the verbatim transcribed words. Do NOT translate to another language. Do NOT add conversational replies, markdown, quotes, explanations, or notes.
+3. If the audio contains only silence, static, background noise, or no recognizable human speech, reply with EXACTLY: NO_SPEECH`;
 
     const candidateModels = [
       process.env.GEMINI_MODEL || "gemini-2.5-flash",

@@ -19,7 +19,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { useAssistantVoice } from "@/hooks/useAssistantVoice";
+import { useAssistantVoice, MULTILINGUAL_VOICE_LANGS } from "@/hooks/useAssistantVoice";
 import {
   AssistantService,
   ChatMessage,
@@ -35,6 +35,7 @@ export default function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
   const [input, setInput] = useState("");
+  const [voiceLanguage, setVoiceLanguage] = useState("auto");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -70,6 +71,7 @@ export default function ChatbotWidget() {
     stopSpeaking,
   } = useAssistantVoice({
     language,
+    selectedVoiceLang: voiceLanguage,
     onTranscriptComplete: handleVoiceTranscript,
     onInterimTranscript: handleInterimTranscript,
   });
@@ -300,7 +302,12 @@ export default function ChatbotWidget() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-alert opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-alert"></span>
                 </span>
-                <span>{t("chatbotListening")}</span>
+                <span>
+                  {t("chatbotListening")}{" "}
+                  <span className="text-[11px] font-normal opacity-90">
+                    ({MULTILINGUAL_VOICE_LANGS.find((v) => v.code === voiceLanguage)?.label || "Any Language"})
+                  </span>
+                </span>
 
                 {/* Dynamic live audio level wave bars */}
                 <div className="flex items-center gap-0.5 h-3.5 ml-1.5">
@@ -443,9 +450,9 @@ export default function ChatbotWidget() {
               onKeyDown={handleKeyDown}
               placeholder={
                 isListening
-                  ? "Listening... Speak now, your words will appear here"
+                  ? `Listening (${MULTILINGUAL_VOICE_LANGS.find((v) => v.code === voiceLanguage)?.flag || "🌐"} Speak now)...`
                   : isTranscribing
-                  ? "Transcribing your voice..."
+                  ? "Transcribing your voice with AI..."
                   : t("chatbotPlaceholder")
               }
               className={cn(
@@ -453,6 +460,23 @@ export default function ChatbotWidget() {
                 isListening && "border-alert/60 ring-2 ring-alert/15 bg-alert-light/10"
               )}
             />
+
+            {/* Multilingual Voice Language Quick Selector */}
+            <div className="shrink-0 flex items-center">
+              <select
+                value={voiceLanguage}
+                onChange={(e) => setVoiceLanguage(e.target.value)}
+                title="Choose speech language (Auto / Any Language works for all languages)"
+                aria-label="Voice input language"
+                className="h-10 px-2 bg-surface border border-border rounded-xl text-xs font-semibold text-text hover:border-primary/50 focus:outline-none focus:border-primary transition-all cursor-pointer shadow-xs max-w-[5.5rem] sm:max-w-[7.5rem] truncate"
+              >
+                {MULTILINGUAL_VOICE_LANGS.map((vl) => (
+                  <option key={vl.code} value={vl.code}>
+                    {vl.flag} {vl.code === "auto" ? "Any Lang" : vl.label.split(" ")[0]}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Voice Input (STT) Button */}
             {recognitionSupported && (

@@ -7,6 +7,16 @@ const LANGUAGE_NAMES: Record<string, string> = {
   gu: "Gujarati",
   bn: "Bengali",
   ta: "Tamil",
+  te: "Telugu",
+  kn: "Kannada",
+  ml: "Malayalam",
+  pa: "Punjabi",
+  ur: "Urdu",
+  or: "Odia",
+  as: "Assamese",
+  ne: "Nepali",
+  sa: "Sanskrit",
+  bho: "Bhojpuri",
 };
 
 export async function POST(req: Request) {
@@ -43,9 +53,10 @@ Role & Capabilities:
 3. Ayurvedic Domain Knowledge:
    - Understand concepts of Tridosha (Vata, Pitta, Kapha), Agni (digestive fire), Prakriti (constitution), and Dinacharya / lifestyle questions.
    - Explain AYUSH concepts simply in layperson terms without overwhelming jargon.
-4. Rules & Tone:
+4. Multilingual Rules & Tone:
    - Keep replies concise (2 to 3 sentences maximum) suitable for reading on a kiosk screen or listening via audio Text-To-Speech.
-   - You MUST respond in ${targetLang}.
+   - The visitor may speak or ask questions in ANY language or dialect (including Hindi, English, Hinglish, Marathi, Gujarati, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi, Urdu, Odia, Bhojpuri, etc.).
+   - If the user asks in a specific language (e.g. Hindi, Telugu, Marathi, Bengali, Tamil, Punjabi, etc.), ALWAYS reply in that same language using its native script (or Latin/Roman script for Hinglish) so the visitor feels completely understood. If the question language is English or ambiguous, respond in ${targetLang}.
    - Current screen route of the patient: "${currentRoute}".
 5. CRITICAL CLINICAL SAFETY:
    - You may suggest general medical treatments, over-the-counter medicines, or Ayurvedic remedies (like Kadha, Churna, etc.) based on their symptoms for educational purposes.
@@ -62,7 +73,7 @@ Role & Capabilities:
       },
       {
         role: "model",
-        parts: [{ text: `Understood. I will act as the MediKiosk hospital assistant and reply concisely in ${targetLang}.` }],
+        parts: [{ text: `Understood. I will act as the MediKiosk hospital assistant and reply concisely in the user's spoken or preferred language.` }],
       },
       ...history.slice(-6).map((h: { role: string; text: string }) => ({
         role: h.role === "user" ? "user" : "model",

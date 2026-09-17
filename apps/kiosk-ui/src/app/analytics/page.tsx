@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
+import RequireRole from "@/components/auth/RequireRole";
 import HospitalAnalytics from "@/components/HospitalAnalytics";
-import { useKioskStore } from "@/store/kioskStore";
 
 export default function AnalyticsPage() {
-  const { setView } = useKioskStore();
-
-  useEffect(() => {
-    setView("analytics");
-  }, [setView]);
-
-  return <HospitalAnalytics />;
+  return (
+    <RequireRole role="admin">
+      <HospitalAnalytics />
+    </RequireRole>
+  );
 }

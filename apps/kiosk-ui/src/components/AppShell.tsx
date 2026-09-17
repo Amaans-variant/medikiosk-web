@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import TopBar from "./TopBar";
-import PhysicianConsole from "./PhysicianConsole";
-import HospitalAnalytics from "./HospitalAnalytics";
 import ChatbotWidget from "./chatbot/ChatbotWidget";
 import { useKioskStore } from "@/store/kioskStore";
+import { useAuthStore } from "@/store/authStore";
 import { cn } from "@/lib/utils";
 import { Clock, RefreshCw } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
@@ -13,7 +12,8 @@ import { useRouter, usePathname } from "next/navigation";
 const KIOSK_IDLE_TIMEOUT_MS = 180000; // 3 Minutes Idle Timeout
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { activeView, easyView, highContrast, resetPatientSession, currentPatient } = useKioskStore();
+  const { activeView, setView, easyView, highContrast, resetPatientSession, currentPatient } = useKioskStore();
+  const { user, isAuthenticated, hydrated } = useAuthStore();
   const [isExpiredModalOpen, setIsExpiredModalOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
@@ -21,9 +21,44 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // The role login screen ("/") is a pre-auth gate: no hospital TopBar,
   // demo control bar, or kiosk idle-timeout modal — just the login card
-  // and the chatbot. Every other route keeps the existing shell exactly
-  // as before (zero change to that behavior).
+  // and the chatbot. Every other route keeps the existing shell.
   const isAuthGate = pathname === "/";
+
+  // Strict role-based route protection: prevent patients from opening doctor/admin,
+  // and prevent doctors from opening admin (and vice versa).
+  useEffect(() => {
+    if (!hydrated || isAuthGate) return;
+
+    if (!isAuthenticated || !user) {
+      router.replace("/");
+      return;
+    }
+
+    if (pathname === "/doctor") {
+      if (user.role !== "doctor") {
+        router.replace(user.role === "admin" ? "/admin" : "/language");
+      } else {
+        setView("physician");
+      }
+      return;
+    }
+
+    if (pathname === "/admin" || pathname === "/analytics") {
+      if (user.role !== "admin") {
+        router.replace(user.role === "doctor" ? "/doctor" : "/language");
+      } else {
+        setView("analytics");
+      }
+      return;
+    }
+
+    // Patient intake routes (/language, /consultation-type, /login, /complaint, etc.)
+    if (user.role !== "patient") {
+      router.replace(user.role === "doctor" ? "/doctor" : "/admin");
+    } else {
+      setView("kiosk");
+    }
+  }, [hydrated, isAuthGate, isAuthenticated, user, pathname, router, setView]);
 
   // Reset idle timer on user interactions in kiosk mode
   useEffect(() => {
@@ -85,13 +120,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     >
       <TopBar />
       <div className="flex-1 flex flex-col">
-        {activeView === 'analytics' ? (
-          <HospitalAnalytics />
-        ) : activeView === 'physician' ? (
-          <PhysicianConsole />
-        ) : (
-          children
-        )}
+        {children}
       </div>
 
       {/* Session Expired / Timeout Modal */}
