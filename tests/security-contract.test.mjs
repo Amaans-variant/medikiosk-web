@@ -1,0 +1,6 @@
+import test from "node:test";import assert from "node:assert/strict";import fs from "node:fs";const root=process.cwd();const read=p=>fs.readFileSync(`${process.cwd()}/${p}`,"utf8");
+test("clinical schema forces RLS",()=>{const s=read("db/schema.sql");assert.match(s,/FORCE ROW LEVEL SECURITY/);assert.match(s,/app_session_id/);assert.match(s,/app_access_role/)});
+test("patient and staff cookies are HttpOnly/Secure in production",()=>{for(const p of ["app/api/patient/session/route.ts","lib/staff-auth.ts"]){const s=read(p);assert.match(s,/httpOnly:true/);assert.match(s,/sameSite:\"lax\"/);assert.match(s,/NODE_ENV===\"production\"/)}});
+test("staff brute force protection is shared DB-backed",()=>{const s=read("lib/staff-auth.ts");assert.match(s,/staff_login_attempts/);assert.match(s,/sha256/);assert.match(s,/attempts/)});
+test("hospital APIs are role gated",()=>{assert.match(read("app/api/hospital/overview/route.ts"),/requireStaff\(\"HOSPITAL\"\)/);assert.match(read("app/api/hospital/audit/route.ts"),/requireStaff\(\"HOSPITAL\"\)/)});
+test("doctor FHIR export is doctor gated and no-store",()=>{const s=read("app/api/staff/case/[sessionId]/fhir/route.ts");assert.match(s,/requireStaff\(\"DOCTOR\"\)/);assert.match(s,/no-store, private/)});

@@ -1,0 +1,4 @@
+import test from "node:test";import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";
+const root=path.resolve(new URL("..",import.meta.url).pathname);const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+test("idempotent session retry is bound to the same resume secret hash",()=>{const cases=read("lib/db/cases.ts"),route=read("app/api/patient/session/route.ts");assert.match(cases,/existingHash!==suppliedHash/);assert.match(cases,/IDEMPOTENCY_RESUME_MISMATCH/);assert.match(route,/IDEMPOTENCY_CONFLICT/)});
+test("production kiosk heartbeat fails closed without device authentication",()=>{const s=read("app/api/kiosk/heartbeat/route.ts");assert.match(s,/KIOSK_HEARTBEAT_SECRET/);assert.match(s,/NODE_ENV!=="production"/);assert.match(s,/x-medikiosk-kiosk-key/);assert.match(s,/timingSafeEqual/);assert.match(read(".env.example"),/KIOSK_HEARTBEAT_SECRET=/)});

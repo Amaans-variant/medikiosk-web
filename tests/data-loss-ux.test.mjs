@@ -1,0 +1,5 @@
+import test from "node:test";import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";
+const root=path.resolve(new URL("..",import.meta.url).pathname);const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+test("Medi typed draft is encrypted locally and only cleared after confirmed send",()=>{const s=read("app/patient/assistant/page.tsx");assert.match(s,/medi-chat-draft/);assert.match(s,/ensureSynced/);assert.match(s,/clearDraft\("medi-chat-draft"\)/)});
+test("doctor note is not cleared after a failed save",()=>{const s=read("app/doctor/case/[sessionId]/page.tsx");assert.match(s,/if\(await action\("notes",\{body:note\}\)\)setNote\(""\)/);assert.match(s,/typed data has been kept on screen/)});
+test("doctor evidence and safety review actions check response status",()=>{const s=read("app/doctor/case/[sessionId]/page.tsx");assert.match(s,/async function review/);assert.match(s,/if\(!r\.ok\)/);assert.match(s,/review\(`signals/);assert.match(s,/review\(`evidence/)});

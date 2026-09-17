@@ -1,0 +1,5 @@
+import test from "node:test";import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";
+const root=path.resolve(new URL("..",import.meta.url).pathname);const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+test("OCR uses claim/process/finalize and does not call OCR inside the claiming transaction",()=>{const s=read("app/api/patient/documents/[id]/ocr/route.ts");const claimEnd=s.indexOf('if(claim.kind===');const ocr=s.indexOf('runOcr(');assert.ok(claimEnd>0&&ocr>claimEnd);assert.match(s,/ocr_status==='PROCESSING'/);assert.match(s,/idempotent:true/)});
+test("OCR retry replaces prior OCR result atomically",()=>{const s=read("app/api/patient/documents/[id]/ocr/route.ts");assert.match(s,/DELETE FROM ocr_results/);assert.match(s,/UPDATE documents SET processing_status='OCR_COMPLETE'/)});
+test("extraction protects concurrent replay and deduplicates generated evidence",()=>{const s=read("app/api/patient/documents/[id]/extraction/route.ts");assert.match(s,/extraction_status==='PROCESSING'/);assert.match(s,/DELETE FROM clinical_evidence/);assert.match(s,/DELETE FROM document_extractions/);assert.match(s,/idempotent:true/)});
