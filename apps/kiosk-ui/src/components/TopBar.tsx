@@ -6,18 +6,35 @@ import { useKioskStore } from "@/store/kioskStore";
 import { useAuthStore } from "@/store/authStore";
 import { useThemeStore } from "@/store/themeStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { Siren, Activity, User, Stethoscope, BarChart3, ShieldAlert, X, PhoneCall, Sun, Moon, LogOut, ChevronDown } from "lucide-react";
+import { Siren, Activity, User, Stethoscope, BarChart3, ShieldAlert, X, PhoneCall, Sun, Moon, LogOut, ChevronDown, RotateCcw, ExternalLink } from "lucide-react";
 import CompactLanguageHeaderControl from "./CompactLanguageHeaderControl";
+import { cn } from "@/lib/utils";
 
 export default function TopBar() {
-  const { queue } = useKioskStore();
+  const { queue, activeEmergencyAlert, triggerEmergencyAlert, clearEmergencyAlert } = useKioskStore();
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const { t } = useTranslation();
   const router = useRouter();
   const [showSosModal, setShowSosModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isNotifying, setIsNotifying] = useState(false);
   const waitingCount = queue.filter(p => p.status === 'waiting').length;
+
+  const handleNotifyStaffAndDoctor = () => {
+    setIsNotifying(true);
+    setTimeout(() => {
+      triggerEmergencyAlert({
+        location: "Kiosk Station #1 (Ground Floor OPD)",
+        reason: "Patient or attendant triggered Emergency Staff Assistance at Kiosk Desk"
+      });
+      setIsNotifying(false);
+    }, 250);
+  };
+
+  const handleCancelEmergency = () => {
+    clearEmergencyAlert();
+  };
 
   const handleLogout = () => {
     setShowUserMenu(false);
@@ -89,11 +106,18 @@ export default function TopBar() {
 
           <button 
             onClick={() => setShowSosModal(true)}
-            className="flex items-center gap-1.5 bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-800 transition-colors shadow-xs"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all shadow-xs",
+              activeEmergencyAlert
+                ? "bg-rose-600 text-white animate-pulse ring-2 ring-rose-400 font-black shadow-rose-600/50 shadow-md"
+                : "bg-rose-700 text-white hover:bg-rose-800"
+            )}
             title="Emergency Triage Assistance"
           >
-            <Siren className="w-4 h-4" />
-            <span className="hidden sm:inline">{t("emergencyHelp")}</span>
+            <Siren className={cn("w-4 h-4", activeEmergencyAlert && "animate-bounce")} />
+            <span className="hidden sm:inline">
+              {activeEmergencyAlert ? "Emergency SOS Active" : t("emergencyHelp")}
+            </span>
           </button>
 
           {/* Signed-in user */}
@@ -135,11 +159,11 @@ export default function TopBar() {
 
       {/* Emergency Assistance Modal */}
       {showSosModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-surface-card border border-rose-300 rounded-3xl max-w-md w-full p-6 shadow-xl space-y-4 animate-fadeIn">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface-card border-2 border-rose-400 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-fadeIn">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0 shadow-xs">
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <div>
@@ -149,31 +173,111 @@ export default function TopBar() {
               </div>
               <button 
                 onClick={() => setShowSosModal(false)}
-                className="text-text-muted hover:text-text p-1 rounded-lg"
+                className="text-text-muted hover:text-text p-1.5 rounded-xl hover:bg-surface transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs text-rose-900 leading-relaxed space-y-2">
-              <p className="font-semibold">
+            <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-4 text-xs text-rose-900 dark:text-rose-200 leading-relaxed space-y-2">
+              <p className="font-semibold text-rose-950 dark:text-rose-100">
                 If the patient is experiencing sudden severe chest pain, breathlessness, loss of consciousness, or acute trauma:
               </p>
-              <ul className="list-disc pl-4 space-y-1 text-rose-800">
+              <ul className="list-disc pl-4 space-y-1 text-rose-800 dark:text-rose-300">
                 <li>Alert the nearest OPD triage nurse immediately.</li>
                 <li>Proceed directly to <strong>Room 1 · Red Flag Emergency Triage</strong>.</li>
                 <li>Do not wait for standard token queue call.</li>
               </ul>
             </div>
 
-            <div className="flex items-center justify-between pt-2 flex-wrap gap-3">
+            {/* Direct Staff & Doctor Notification Responsive Button & Live Status */}
+            <div className="space-y-3 pt-1">
+              {!activeEmergencyAlert ? (
+                <button
+                  type="button"
+                  onClick={handleNotifyStaffAndDoctor}
+                  disabled={isNotifying}
+                  className="w-full py-3.5 px-5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 active:scale-[0.98] text-white rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-rose-600/30 hover:shadow-rose-600/50 transition-all duration-150 group cursor-pointer disabled:opacity-75"
+                >
+                  <Siren className={cn("w-5 h-5 text-white shrink-0", isNotifying ? "animate-spin" : "animate-bounce group-hover:scale-110 transition-transform")} />
+                  <span>{isNotifying ? "Broadcasting Emergency SOS..." : "🚨 Notify Hospital Staff & Doctor Now"}</span>
+                </button>
+              ) : (
+                <div className="bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-500 rounded-2xl p-4 space-y-3 animate-fadeIn">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
+                      </span>
+                      <span className="font-black text-xs text-rose-900 dark:text-rose-200 uppercase tracking-wider">
+                        {activeEmergencyAlert.status === 'acknowledged'
+                          ? "Staff Dispatched & Doctor Responded"
+                          : "Emergency Alert Active on Doctor's Console"}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-black bg-rose-200 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-md">
+                      Room 1 Triage
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-rose-900 dark:text-rose-200 leading-relaxed font-medium">
+                    {activeEmergencyAlert.status === 'acknowledged' ? (
+                      <>
+                        <strong className="text-emerald-700 dark:text-emerald-400 font-bold">✓ Acknowledged by {activeEmergencyAlert.acknowledgedBy}:</strong> Emergency triage staff and nurse have been dispatched directly to Kiosk #1.
+                      </>
+                    ) : (
+                      <>
+                        Hospital triage nurse and <strong>Doctor Console have been notified with high priority</strong>. An emergency ticket was placed in Room 1 Triage queue. Please remain at the kiosk or proceed to Room 1.
+                      </>
+                    )}
+                  </p>
+
+                  <div className="flex items-center justify-between text-[11px] text-rose-700 dark:text-rose-300 font-semibold border-t border-rose-200 dark:border-rose-900/50 pt-2">
+                    <span>Dispatched: {new Date(activeEmergencyAlert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSosModal(false);
+                        router.push("/doctor");
+                      }}
+                      className="inline-flex items-center gap-1 text-rose-700 hover:text-rose-900 dark:text-rose-300 dark:hover:text-rose-100 underline text-[11px] font-bold"
+                    >
+                      <span>View Doctor's Dashboard</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleNotifyStaffAndDoctor}
+                      className="flex-1 py-2 px-3 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Re-alert Staff
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEmergency}
+                      className="py-2 px-3 bg-surface hover:bg-surface-card border border-border text-text-muted hover:text-text rounded-xl text-xs font-semibold transition-colors"
+                    >
+                      Clear SOS
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-1 flex-wrap gap-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-text">
                 <PhoneCall className="w-4 h-4 text-rose-700" />
                 <span>Internal Triage Ext: <strong>#108</strong></span>
               </div>
               <button
+                type="button"
                 onClick={() => setShowSosModal(false)}
-                className="bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary-dark transition-colors"
+                className="bg-primary text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary-dark transition-colors shadow-xs"
               >
                 Acknowledge & Close
               </button>

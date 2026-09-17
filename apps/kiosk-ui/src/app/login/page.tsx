@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useKioskStore } from "@/store/kioskStore";
-import { Volume2, QrCode, Smartphone, ArrowRight, ShieldCheck } from "lucide-react";
+import { Volume2, QrCode, Smartphone, ArrowRight, ShieldCheck, User, Info, CreditCard, CheckCircle2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { setPatientDemographics, patientCategory, setPatientCategory } = useKioskStore();
   const [mobileNumber, setMobileNumber] = useState("");
+  const [abhaIdInput, setAbhaIdInput] = useState("");
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [otp, setOtp] = useState("");
   const [isQrScanning, setIsQrScanning] = useState(false);
@@ -52,6 +53,16 @@ export default function LoginScreen() {
       setIsQrScanning(false);
       router.push("/complaint");
     }, 1000);
+  };
+
+  const handleAbhaManualSubmit = () => {
+    setPatientDemographics({
+      name: "Priya Sharma",
+      age: 42,
+      gender: "F",
+      abhaId: abhaIdInput
+    });
+    router.push("/complaint");
   };
 
   const playAudio = () => {
@@ -96,7 +107,7 @@ export default function LoginScreen() {
       </header>
 
       {/* Main Content Area */}
-      <main className="w-full max-w-[800px] mt-6 flex flex-col items-center px-4 space-y-6">
+      <main className="w-full max-w-[1024px] mt-6 flex flex-col items-center px-4 space-y-6">
         
         {/* Patient / Guardian Caregiver Category Selection */}
         <div className="w-full max-w-[800px] flex items-center justify-between bg-surface-card p-3 rounded-2xl border border-border shadow-xs">
@@ -142,86 +153,159 @@ export default function LoginScreen() {
               <Volume2 className="w-5 h-5" />
             </button>
           </h1>
-          <h2 className="text-text-muted text-sm sm:text-base">
+          <h2 className="text-text-muted text-sm sm:text-base max-w-2xl">
             {isOtpMode ? "Enter the 6-digit verification code sent to your phone" : "Fast check-in via Ayushman Bharat Digital Mission (ABHA) or Mobile"}
           </h2>
         </div>
 
         {!isOtpMode ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-            {/* ABHA QR Option */}
-            <div className="bg-surface-card border-2 border-border hover:border-primary/50 transition-all rounded-3xl p-6 sm:p-7 flex flex-col items-center text-center shadow-xs relative overflow-hidden justify-between">
-              <div className="absolute top-0 right-0 bg-emerald-700 text-white px-3 py-1 rounded-bl-xl font-bold text-[10px] tracking-wider uppercase">
-                Fastest · Fast Track
-              </div>
-              <div className="w-16 h-16 bg-primary-light rounded-2xl mb-4 flex items-center justify-center text-primary border border-primary/20 mt-2">
-                <QrCode className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-text mb-0.5">Scan ABHA Card QR</h3>
-                <p className="text-text-muted text-xs sm:text-sm mb-5">
-                  Instant verification with your Ayushman Bharat Health Account
-                </p>
-              </div>
-              
-              <button 
-                onClick={handleSimulateQrScan}
-                disabled={isQrScanning}
-                className="w-full bg-primary text-white font-bold text-sm sm:text-base py-3.5 rounded-2xl hover:bg-primary-dark transition-colors shadow-xs disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {isQrScanning ? (
-                  <>
-                    <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></span>
-                    <span>Scanning Card...</span>
-                  </>
-                ) : (
-                  <>
-                    <QrCode className="w-4 h-4" />
-                    <span>Scan ABHA QR Now</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Mobile Number Option */}
-            <div className="bg-surface-card border-2 border-primary rounded-3xl p-6 sm:p-7 flex flex-col items-center text-center shadow-xs justify-between">
-              <div className="w-16 h-16 bg-teal-light rounded-2xl mb-4 flex items-center justify-center text-teal border border-teal/20 mt-2">
-                <Smartphone className="w-8 h-8" />
-              </div>
-              <div className="w-full">
-                <h3 className="text-xl font-bold text-text mb-0.5">Mobile Number</h3>
-                <p className="text-text-muted text-xs sm:text-sm mb-4">Enter 10-digit phone number for OTP</p>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+              {/* ABHA QR Option */}
+              <div className="bg-surface-card border-2 border-border hover:border-primary/50 transition-all rounded-3xl p-6 sm:p-7 flex flex-col items-center text-center shadow-xs relative overflow-hidden justify-between">
+                <div className="absolute top-0 right-0 bg-emerald-700 text-white px-3 py-1 rounded-bl-xl font-bold text-[10px] tracking-wider uppercase">
+                  Fastest
+                </div>
+                <div className="w-16 h-16 bg-primary-light rounded-2xl mb-4 flex items-center justify-center text-primary border border-primary/20 mt-2">
+                  <QrCode className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-text mb-0.5">Scan ABHA QR</h3>
+                  <p className="text-text-muted text-xs sm:text-sm mb-5">
+                    Instant verification with your ABHA Card
+                  </p>
+                </div>
                 
-                <div className="w-full relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold text-base">
-                    +91
-                  </span>
-                  <input 
-                    type="tel"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="98765 43210"
-                    className="w-full text-center pl-12 text-xl font-bold p-3.5 border-2 border-border rounded-2xl focus:outline-none focus:border-primary tracking-wider bg-surface"
-                    value={mobileNumber}
-                    onChange={handleMobileChange}
-                    maxLength={10}
-                  />
+                <button 
+                  onClick={handleSimulateQrScan}
+                  disabled={isQrScanning}
+                  className="w-full bg-primary text-white font-bold text-sm sm:text-base py-3.5 rounded-2xl hover:bg-primary-dark transition-colors shadow-xs disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {isQrScanning ? (
+                    <>
+                      <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></span>
+                      <span>Scanning...</span>
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="w-4 h-4" />
+                      <span>Scan QR Now</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* ABHA Number Option */}
+              <div className="bg-surface-card border-2 border-border hover:border-blue-500/50 transition-all rounded-3xl p-6 sm:p-7 flex flex-col items-center text-center shadow-xs justify-between">
+                <div className="w-16 h-16 bg-blue-500/10 rounded-2xl mb-4 flex items-center justify-center text-blue-500 border border-blue-500/20 mt-2">
+                  <User className="w-8 h-8" />
+                </div>
+                <div className="w-full">
+                  <h3 className="text-lg sm:text-xl font-bold text-text mb-0.5">ABHA ID / Address</h3>
+                  <p className="text-text-muted text-xs sm:text-sm mb-4">Enter 14-digit number or username</p>
+                  
+                  <div className="w-full">
+                    <input 
+                      type="text"
+                      placeholder="91-4412... or name@abdm"
+                      className="w-full text-center text-sm sm:text-base font-bold p-3.5 border-2 border-border rounded-2xl focus:outline-none focus:border-blue-500 tracking-wider bg-surface"
+                      value={abhaIdInput}
+                      onChange={(e) => setAbhaIdInput(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full pt-4">
+                  <button
+                    onClick={handleAbhaManualSubmit}
+                    disabled={abhaIdInput.length < 8}
+                    className="w-full bg-blue-500 text-white font-bold text-sm sm:text-base py-3.5 rounded-2xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Verify ABHA →
+                  </button>
                 </div>
               </div>
 
-              <div className="w-full pt-4">
-                <button
-                  onClick={handleNext}
-                  disabled={mobileNumber.length !== 10}
-                  className="w-full bg-teal text-white font-bold text-sm sm:text-base py-3.5 rounded-2xl hover:bg-teal-bright transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Send OTP (ओटीपी भेजें) →
-                </button>
+              {/* Mobile Number Option */}
+              <div className="bg-surface-card border-2 border-teal rounded-3xl p-6 sm:p-7 flex flex-col items-center text-center shadow-xs justify-between">
+                <div className="w-16 h-16 bg-teal-light rounded-2xl mb-4 flex items-center justify-center text-teal border border-teal/20 mt-2">
+                  <Smartphone className="w-8 h-8" />
+                </div>
+                <div className="w-full">
+                  <h3 className="text-lg sm:text-xl font-bold text-text mb-0.5">Mobile Number</h3>
+                  <p className="text-text-muted text-xs sm:text-sm mb-4">Enter 10-digit phone number for OTP</p>
+                  
+                  <div className="w-full relative">
+                    <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold text-sm sm:text-base">
+                      +91
+                    </span>
+                    <input 
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="98765 43210"
+                      className="w-full text-center pl-10 sm:pl-12 text-sm sm:text-base font-bold p-3.5 border-2 border-border rounded-2xl focus:outline-none focus:border-teal tracking-wider bg-surface"
+                      value={mobileNumber}
+                      onChange={handleMobileChange}
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full pt-4">
+                  <button
+                    onClick={handleNext}
+                    disabled={mobileNumber.length !== 10}
+                    className="w-full bg-teal text-white font-bold text-sm sm:text-base py-3.5 rounded-2xl hover:bg-teal-bright transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Send OTP →
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+
+            {/* ABHA Info Section */}
+            <div className="w-full bg-surface-card border border-border rounded-2xl p-5 sm:p-6 text-left shadow-xs mt-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Info className="w-5 h-5 text-primary" />
+                <h3 className="text-base sm:text-lg font-bold text-text">What is an ABHA ID?</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-text-muted mb-4">
+                A free, voluntary 14-digit digital health number launched by the Government of India to uniquely identify citizens and securely link medical records across India's healthcare ecosystem.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-surface p-4 rounded-xl border border-border">
+                  <h4 className="font-bold text-sm text-text flex items-center gap-1.5 mb-2">
+                    <CreditCard className="w-4 h-4 text-primary" /> Key Components
+                  </h4>
+                  <ul className="text-xs sm:text-sm text-text-muted space-y-2 list-disc pl-4">
+                    <li><strong className="text-text font-semibold">ABHA Number:</strong> Unique 14-digit ID verified via Aadhaar or Mobile.</li>
+                    <li><strong className="text-text font-semibold">ABHA Address:</strong> Self-chosen username (e.g. name@abdm) to share records safely.</li>
+                    <li><strong className="text-text font-semibold">ABHA Card:</strong> Downloadable digital card with a QR code for quick scanning.</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-surface p-4 rounded-xl border border-border">
+                  <h4 className="font-bold text-sm text-text flex items-center gap-1.5 mb-2">
+                    <CheckCircle2 className="w-4 h-4 text-teal" /> Main Benefits
+                  </h4>
+                  <ul className="text-xs sm:text-sm text-text-muted space-y-2 list-disc pl-4">
+                    <li><strong className="text-text font-semibold">Paperless Records:</strong> Store prescriptions, lab reports, and diagnoses digitally.</li>
+                    <li><strong className="text-text font-semibold">Consent-Based Sharing:</strong> Share history only when you give permission.</li>
+                    <li><strong className="text-text font-semibold">Universal Access:</strong> Access documents seamlessly across participating hospitals anywhere in India.</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <a href="https://abha.abdm.gov.in/abha/v3" target="_blank" rel="noreferrer" className="text-xs sm:text-sm font-bold text-primary hover:underline flex items-center gap-1">
+                  Create your free ABHA ID <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+          </>
         ) : (
-          <div className="w-full max-w-md bg-surface-card border-2 border-primary rounded-3xl p-7 flex flex-col items-center text-center shadow-md space-y-4">
+          <div className="w-full max-w-md bg-surface-card border-2 border-teal rounded-3xl p-7 flex flex-col items-center text-center shadow-md space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-teal-light text-teal flex items-center justify-center">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -235,7 +319,7 @@ export default function LoginScreen() {
               inputMode="numeric"
               pattern="[0-9]*"
               placeholder="• • • • • •"
-              className="w-full text-center tracking-[0.5em] text-2xl font-black p-3.5 border-2 border-border rounded-2xl focus:outline-none focus:border-primary bg-surface font-mono"
+              className="w-full text-center tracking-[0.5em] text-2xl font-black p-3.5 border-2 border-border rounded-2xl focus:outline-none focus:border-teal bg-surface font-mono"
               value={otp}
               onChange={handleOtpChange}
               maxLength={6}
@@ -252,12 +336,11 @@ export default function LoginScreen() {
         )}
 
         {/* ABDM Security Trust Badge */}
-        <div className="flex items-center gap-2 text-xs text-text-muted font-medium pt-2">
+        <div className="flex items-center gap-2 text-xs text-text-muted font-medium pt-2 pb-8">
           <ShieldCheck className="w-4 h-4 text-teal" />
           <span>Encrypted & Compliant with National Health Authority ABDM Guidelines</span>
         </div>
       </main>
-
       {/* Sticky Bottom Action Button */}
       <div className="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-sm p-4 sm:p-5 flex justify-center border-t border-border z-40">
         <button 

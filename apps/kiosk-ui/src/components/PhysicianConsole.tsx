@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useKioskStore, PatientRecord } from "@/store/kioskStore";
 import { 
   UserRound, 
@@ -25,7 +25,8 @@ import {
   History,
   Building2,
   SlidersHorizontal,
-  AlertCircle
+  AlertCircle,
+  Siren
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +42,10 @@ export default function PhysicianConsole() {
     rejectPatient, 
     requestReinterview, 
     updatePatientRecord,
-    pushToEmr 
+    pushToEmr,
+    activeEmergencyAlert,
+    acknowledgeEmergencyAlert,
+    clearEmergencyAlert
   } = useKioskStore();
 
   const patient = queue.find((p) => p.id === selectedPatientId) || queue[0];
@@ -249,15 +253,123 @@ export default function PhysicianConsole() {
     return `Patient presents with ${p.complaint.symptomLabel} persisting for ${p.complaint.duration || 'recent onset'}, evaluated severity at ${p.complaint.severity || 5}/10 on Wong-Baker FACES. ${p.complaint.onset ? `Onset is ${p.complaint.onset}. ` : ''}${p.complaint.character ? `Characterized by ${p.complaint.character}. ` : ''}${p.complaint.radiation ? `Radiation: ${p.complaint.radiation}. ` : ''}Associated symptoms include ${p.complaint.associated?.join(", ") || 'none'}. Aggravating factors: ${p.complaint.aggravatingFactors?.join(", ") || 'None noted'}. Relieving factors: ${p.complaint.relievingFactors?.join(", ") || 'None noted'}. Ayurvedic Pariksha indicates ${p.ayushAssessment?.prakriti || 'Vata-Pitta'} Prakriti with ${p.ayushAssessment?.agni || 'Tikshna Agni'}.`;
   }
 
+  // Play auditory emergency chime when a new alert is received
+  useEffect(() => {
+    if (activeEmergencyAlert && activeEmergencyAlert.status === 'active') {
+      try {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.15);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        }
+      } catch (e) {
+        // audio blocked until user gesture, graceful fallback
+      }
+    }
+  }, [activeEmergencyAlert?.id, activeEmergencyAlert?.status]);
+
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-surface">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-8 bg-slate-900 text-white border border-teal/40 px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 z-50 transition-all">
-          <CheckCircle2 className="w-5 h-5 text-teal" />
-          <span className="font-semibold text-sm">{toastMessage}</span>
+    <div className="flex-1 flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface">
+      {/* Active Emergency Alert Banner (Doctor Dashboard Notification) */}
+      {activeEmergencyAlert && (
+        <div className="shrink-0 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white border-b-2 border-red-800 shadow-xl px-4 sm:px-6 py-3 animate-fadeIn">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 border border-white/30 animate-pulse">
+                <Siren className="w-6 h-6 text-white animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-white text-red-700 text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                    🚨 CODE RED EMERGENCY
+                  </span>
+                  <span className="text-xs font-bold text-rose-100">
+                    {activeEmergencyAlert.location}
+                  </span>
+                  <span className="text-[11px] text-white/80">
+                    • {new Date(activeEmergencyAlert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-white mt-0.5">
+                  {activeEmergencyAlert.details} — Assigned to <span className="underline decoration-white/70 font-black">{activeEmergencyAlert.triageRoom}</span>
+                </p>
+                {activeEmergencyAlert.status === 'acknowledged' && (
+                  <p className="text-xs text-emerald-100 font-semibold mt-0.5 flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-300" />
+                    Acknowledged by {activeEmergencyAlert.acknowledgedBy} · Triage nurse dispatched to Kiosk
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end md:self-center shrink-0 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setQueueTab("PRIORITY");
+                  if (activeEmergencyAlert.patientRecordId) {
+                    selectPatient(activeEmergencyAlert.patientRecordId);
+                  } else {
+                    const sos = queue.find(p => p.name.includes("EMERGENCY KIOSK"));
+                    if (sos) selectPatient(sos.id);
+                  }
+                  showToast("Switched to Emergency Triage Priority Queue.");
+                }}
+                className="px-3.5 py-2 bg-white text-red-700 hover:bg-rose-50 text-xs font-black rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <ShieldAlert className="w-4 h-4 text-red-600" />
+                <span>Attend in Triage</span>
+              </button>
+
+              {activeEmergencyAlert.status !== 'acknowledged' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    acknowledgeEmergencyAlert("Dr. Anand Sharma, MD (Reg #DMC-49210)");
+                    showToast("Emergency Alert acknowledged! Triage nurse dispatched to Kiosk.");
+                  }}
+                  className="px-3.5 py-2 bg-red-950/50 hover:bg-red-950/70 border border-white/40 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Check className="w-4 h-4 text-white" />
+                  <span>Acknowledge & Dispatch Staff</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearEmergencyAlert();
+                    showToast("Emergency alert resolved and cleared.");
+                  }}
+                  className="px-3.5 py-2 bg-red-950/50 hover:bg-red-950/70 border border-white/40 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                  <span>Resolve & Dismiss</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
+
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed top-20 right-8 bg-slate-900 text-white border border-teal/40 px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 z-50 transition-all">
+            <CheckCircle2 className="w-5 h-5 text-teal" />
+            <span className="font-semibold text-sm">{toastMessage}</span>
+          </div>
+        )}
 
       {/* Mobile Queue Toggle Bar */}
       <div className="lg:hidden bg-surface-card border-b border-border px-4 py-3 flex items-center justify-between">
@@ -321,6 +433,9 @@ export default function PhysicianConsole() {
               )}
             >
               <span>🚨 Priority</span>
+              {activeEmergencyAlert && (
+                <span className="w-2 h-2 rounded-full bg-white animate-ping shrink-0" />
+              )}
               {priorityCount > 0 && (
                 <span className={cn(
                   "px-1.5 py-0.2 rounded-full text-[10px]",
@@ -1600,6 +1715,7 @@ export default function PhysicianConsole() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

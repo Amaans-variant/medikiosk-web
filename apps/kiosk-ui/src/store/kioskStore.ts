@@ -47,6 +47,18 @@ export interface AuditLogEntry {
   newValue: string;
 }
 
+export interface EmergencyAlert {
+  id: string;
+  timestamp: number;
+  location: string;
+  details: string;
+  status: 'active' | 'acknowledged' | 'resolved';
+  acknowledgedBy?: string;
+  acknowledgedAt?: number;
+  triageRoom: string;
+  patientRecordId?: string;
+}
+
 export interface PatientRecord {
   id: string;
   token: number;
@@ -181,6 +193,12 @@ interface KioskState {
   pushToEmr: (id: string) => void;
   loadDemoScenario: (scenario: 1 | 2 | 3) => void;
   resetDemoEnvironment: () => void;
+
+  // Real-time Emergency SOS Notification System
+  activeEmergencyAlert: EmergencyAlert | null;
+  triggerEmergencyAlert: (details?: { location?: string; reason?: string }) => EmergencyAlert;
+  acknowledgeEmergencyAlert: (doctorName?: string) => void;
+  clearEmergencyAlert: () => void;
 }
 
 const SEED_QUEUE: PatientRecord[] = [
@@ -656,6 +674,7 @@ export const useKioskStore = create<KioskState>()(
 
   queue: SEED_QUEUE,
   selectedPatientId: 'p-101',
+  activeEmergencyAlert: null,
 
   setView: (view) => set({ activeView: view }),
   setLanguage: (lang) =>
@@ -1468,21 +1487,168 @@ export const useKioskStore = create<KioskState>()(
         }
       }
     });
-  }
+  },
+
+  triggerEmergencyAlert: (details) => {
+    const alertId = `emg-${Date.now()}`;
+    const patientId = `sos-${Date.now()}`;
+    const newAlert: EmergencyAlert = {
+      id: alertId,
+      timestamp: Date.now(),
+      location: details?.location || "Kiosk Terminal #1 (Ground Floor OPD)",
+      details: details?.reason || "Patient or attendant triggered Emergency Staff Assistance at Kiosk Desk",
+      status: "active",
+      triageRoom: "Room 1 (Red Flag Emergency Triage)",
+      patientRecordId: patientId,
+    };
+
+    const emergencyPatient: PatientRecord = {
+      id: patientId,
+      token: 911,
+      room: "Room 1 (Red Flag Emergency)",
+      department: "Emergency & Critical Triage",
+      name: "EMERGENCY KIOSK ALERT",
+      age: 0,
+      gender: "Other",
+      abhaId: "SOS-ALERT-DESK",
+      mobile: "+91 99999 11200",
+      waitSince: Date.now(),
+      consultationType: "modern",
+      vitals: {
+        bp: "CRITICAL",
+        pulse: 124,
+        temp: 99.1,
+        spO2: 90,
+        respiratoryRate: 26,
+      },
+      complaint: {
+        symptomLabel: "CRITICAL EMERGENCY: Kiosk Immediate Assistance Triggered",
+        anatomicalRegion: "chest_heart_lungs",
+        duration: "Active Now",
+        severity: 10,
+        onset: "Sudden",
+      },
+      redFlags: [
+        {
+          id: `rf-sos-${Date.now()}`,
+          sessionId: `sos-sess-${Date.now()}`,
+          severity: "emergency_code_red",
+          condition: "CRITICAL SOS: Kiosk Emergency Button Triggered",
+          clinicalRationale: "Immediate staff and doctor intervention requested at Kiosk Terminal #1. Rapid triage to Room 1.",
+          triggeredAt: Date.now(),
+          acknowledged: false,
+        }
+      ],
+      reviewStatus: "ai_draft",
+      status: "waiting"
+    };
+
+    set((state) => ({
+      activeEmergencyAlert: newAlert,
+      queue: [emergencyPatient, ...state.queue.filter((p) => !p.name.includes("EMERGENCY KIOSK ALERT"))],
+      selectedPatientId: patientId,
+    }));
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("medikiosk_emergency_alert", JSON.stringify(newAlert));
+        const bc = new BroadcastChannel("medikiosk_sync");
+        bc.postMessage({ type: "EMERGENCY_ALERT", alert: newAlert, emergencyPatient });
+        bc.close();
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return newAlert;
+  },
+
+  acknowledgeEmergencyAlert: (doctorName) => {
+    set((state) => {
+      if (!state.activeEmergencyAlert) return state;
+      const updatedAlert: EmergencyAlert = {
+        ...state.activeEmergencyAlert,
+        status: "acknowledged",
+        acknowledgedBy: doctorName || "Dr. Anand Sharma, MD (Reg #DMC-49210)",
+        acknowledgedAt: Date.now(),
+      };
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("medikiosk_emergency_alert", JSON.stringify(updatedAlert));
+          const bc = new BroadcastChannel("medikiosk_sync");
+          bc.postMessage({ type: "EMERGENCY_ACKNOWLEDGED", alert: updatedAlert });
+          bc.close();
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      return { activeEmergencyAlert: updatedAlert };
+    });
+  },
+
+  clearEmergencyAlert: () => {
+    set({ activeEmergencyAlert: null });
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("medikiosk_emergency_alert");
+        const bc = new BroadcastChannel("medikiosk_sync");
+        bc.postMessage({ type: "EMERGENCY_CLEARED" });
+        bc.close();
+      } catch (e) {
+        // ignore
+      }
+    }
+  },
     }),
     {
       name: KIOSK_LANGUAGE_STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
-      // This `partialize` is the actual fix for the "language reverts to the
-      // old context" bug: previously nothing about language was persisted,
-      // so a reload/new tab/navigation silently fell back to the default
-      // ('hi'). Only the three language fields are persisted — patient
-      // demographics, queue, and session data stay in-memory only.
+      // This `partialize` persists language preferences and active emergency alert across reloads.
       partialize: (state) => ({
         language: state.language,
         preferredLanguage: state.preferredLanguage,
         voiceLanguage: state.voiceLanguage,
+        activeEmergencyAlert: state.activeEmergencyAlert,
       }),
     }
   )
 );
+
+// Cross-tab real-time sync for Emergency Alerts
+if (typeof window !== "undefined") {
+  try {
+    const syncChannel = new BroadcastChannel("medikiosk_sync");
+    syncChannel.onmessage = (event) => {
+      if (event.data?.type === "EMERGENCY_ALERT" && event.data.alert) {
+        useKioskStore.setState((state) => ({
+          activeEmergencyAlert: event.data.alert,
+          queue: event.data.emergencyPatient
+            ? [event.data.emergencyPatient, ...state.queue.filter((p) => !p.name.includes("EMERGENCY KIOSK ALERT"))]
+            : state.queue,
+          selectedPatientId: event.data.emergencyPatient?.id || state.selectedPatientId,
+        }));
+      } else if (event.data?.type === "EMERGENCY_ACKNOWLEDGED" && event.data.alert) {
+        useKioskStore.setState({ activeEmergencyAlert: event.data.alert });
+      } else if (event.data?.type === "EMERGENCY_CLEARED") {
+        useKioskStore.setState({ activeEmergencyAlert: null });
+      }
+    };
+  } catch (e) {
+    // ignore
+  }
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === "medikiosk_emergency_alert") {
+      if (event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          useKioskStore.setState({ activeEmergencyAlert: parsed });
+        } catch (e) {}
+      } else {
+        useKioskStore.setState({ activeEmergencyAlert: null });
+      }
+    }
+  });
+}
