@@ -6,12 +6,11 @@ import { useKioskStore } from "@/store/kioskStore";
 import { useAuthStore } from "@/store/authStore";
 import { useThemeStore } from "@/store/themeStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { Siren, Activity, User, Stethoscope, BarChart3, ShieldAlert, X, PhoneCall, Eye, Sun, Moon, LogOut, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Siren, Activity, User, Stethoscope, BarChart3, ShieldAlert, X, PhoneCall, Sun, Moon, LogOut, ChevronDown } from "lucide-react";
 import CompactLanguageHeaderControl from "./CompactLanguageHeaderControl";
 
 export default function TopBar() {
-  const { activeView, setView, queue, easyView, highContrast, toggleEasyView, toggleHighContrast } = useKioskStore();
+  const { queue } = useKioskStore();
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const { t } = useTranslation();
@@ -97,59 +96,39 @@ export default function TopBar() {
             <span className="hidden sm:inline">{t("emergencyHelp")}</span>
           </button>
 
-          {/* Signed-in user / Logout */}
-          {user ? (
-            <div className="flex items-center gap-1.5">
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu((v) => !v)}
-                  className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:bg-surface-card transition-colors"
-                >
-                  <span className="w-6 h-6 rounded-full bg-primary-light text-primary flex items-center justify-center text-[10px] font-black shrink-0">
-                    {user.displayName.charAt(0)}
-                  </span>
-                  <span className="hidden lg:inline">{user.displayName}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
-                </button>
-
-                {showUserMenu && (
-                  <>
-                    <div className="fixed inset-0 z-30" onClick={() => setShowUserMenu(false)} />
-                    <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-surface-card border border-border shadow-lg z-40 py-2 animate-fadeIn">
-                      <div className="px-3.5 py-2 border-b border-border mb-1">
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t("signedInAs")}</p>
-                        <p className="text-sm font-bold text-text truncate">{user.identifier}</p>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full px-3.5 py-2 text-left text-xs font-bold text-alert flex items-center gap-2 hover:bg-alert-light transition-colors"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        {user.role === "patient" ? "Exit Intake" : t("logout")}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-
+          {/* Signed-in user */}
+          {user && (
+            <div className="relative">
               <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:text-alert hover:border-alert/40 transition-colors"
-                title={user.role === "patient" ? "Exit session and return to Sign In" : t("logout")}
+                onClick={() => setShowUserMenu((v) => !v)}
+                className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:bg-surface-card transition-colors"
               >
-                <LogOut className="w-3.5 h-3.5 text-alert" />
-                <span className="hidden sm:inline">{user.role === "patient" ? "Exit" : t("logout")}</span>
+                <span className="w-6 h-6 rounded-full bg-primary-light text-primary flex items-center justify-center text-[10px] font-black shrink-0">
+                  {user.displayName.charAt(0)}
+                </span>
+                <span className="hidden lg:inline">{user.displayName}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
               </button>
+
+              {showUserMenu && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowUserMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-surface-card border border-border shadow-lg z-40 py-2 animate-fadeIn">
+                    <div className="px-3.5 py-2 border-b border-border mb-1">
+                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{t("signedInAs")}</p>
+                      <p className="text-sm font-bold text-text truncate">{user.identifier}</p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full px-3.5 py-2 text-left text-xs font-bold text-alert flex items-center gap-2 hover:bg-alert-light transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      {user.role === "patient" ? "Exit Intake" : t("logout")}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1.5 rounded-lg text-xs font-bold text-text hover:text-alert hover:border-alert/40 transition-colors"
-              title="Sign In / Choose Role"
-            >
-              <LogOut className="w-3.5 h-3.5 text-alert" />
-              <span className="hidden sm:inline">Sign In</span>
-            </button>
           )}
         </div>
       </header>
