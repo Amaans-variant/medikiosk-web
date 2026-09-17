@@ -14,6 +14,7 @@ import {
   Trash2,
   ArrowRight,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -46,11 +47,19 @@ export default function ChatbotWidget() {
 
   const handleVoiceTranscript = useCallback((transcriptText: string) => {
     if (!transcriptText.trim()) return;
-    sendMessageRef.current(transcriptText);
+    setInput(transcriptText);
+  }, []);
+
+  const handleInterimTranscript = useCallback((interimText: string) => {
+    setInput(interimText);
   }, []);
 
   const {
     isListening,
+    isTranscribing,
+    audioLevel,
+    voiceError,
+    clearVoiceError,
     isSpeaking,
     speakingMessageId,
     speechSupported,
@@ -62,6 +71,7 @@ export default function ChatbotWidget() {
   } = useAssistantVoice({
     language,
     onTranscriptComplete: handleVoiceTranscript,
+    onInterimTranscript: handleInterimTranscript,
   });
 
   // Auto-scroll on new messages or typing state
@@ -256,7 +266,33 @@ export default function ChatbotWidget() {
             </div>
           </div>
 
-          {/* Listening Banner if Speech Recognition is active */}
+          {/* Voice Error Banner */}
+          {voiceError && (
+            <div className="bg-alert-light border-b border-alert/30 px-3.5 py-2 flex items-center justify-between text-alert text-xs animate-fadeIn shrink-0">
+              <div className="flex items-center gap-1.5 font-medium min-w-0 pr-2">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-alert" />
+                <span className="truncate">{voiceError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={clearVoiceError}
+                aria-label="Dismiss error"
+                className="p-1 rounded hover:bg-alert/10 transition-colors shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Fallback Transcribing State */}
+          {isTranscribing && (
+            <div className="bg-primary-light border-b border-primary/20 px-3.5 py-1.5 flex items-center gap-2 text-primary text-xs animate-fadeIn shrink-0">
+              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+              <span className="font-medium">Converting voice to text with AI...</span>
+            </div>
+          )}
+
+          {/* Listening Banner if Speech Recognition or Microphone is active */}
           {isListening && (
             <div className="bg-alert-light border-b border-alert/20 px-3.5 py-2 flex items-center justify-between text-alert text-xs animate-fadeIn shrink-0">
               <div className="flex items-center gap-2 font-medium">
@@ -265,6 +301,23 @@ export default function ChatbotWidget() {
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-alert"></span>
                 </span>
                 <span>{t("chatbotListening")}</span>
+
+                {/* Dynamic live audio level wave bars */}
+                <div className="flex items-center gap-0.5 h-3.5 ml-1.5">
+                  {[0.15, 0.35, 0.55, 0.75, 0.95].map((factor, i) => {
+                    const barHeight = Math.max(3, Math.min(14, Math.round((audioLevel / 100) * 14 * factor + 3)));
+                    return (
+                      <span
+                        key={i}
+                        className={cn(
+                          "w-1 rounded-full transition-all duration-75",
+                          audioLevel > 5 ? "bg-alert" : "bg-alert/40"
+                        )}
+                        style={{ height: `${barHeight}px` }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
               <button
                 type="button"
@@ -388,8 +441,17 @@ export default function ChatbotWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t("chatbotPlaceholder")}
-              className="flex-1 min-w-0 bg-surface border border-border rounded-xl px-3.5 py-2.5 text-sm text-text focus:outline-none focus:border-primary transition-colors"
+              placeholder={
+                isListening
+                  ? "Listening... Speak now, your words will appear here"
+                  : isTranscribing
+                  ? "Transcribing your voice..."
+                  : t("chatbotPlaceholder")
+              }
+              className={cn(
+                "flex-1 min-w-0 bg-surface border border-border rounded-xl px-3.5 py-2.5 text-sm text-text focus:outline-none focus:border-primary transition-colors",
+                isListening && "border-alert/60 ring-2 ring-alert/15 bg-alert-light/10"
+              )}
             />
 
             {/* Voice Input (STT) Button */}
@@ -397,16 +459,33 @@ export default function ChatbotWidget() {
               <button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
-                aria-label={isListening ? t("chatbotStopListening") : t("chatbotVoiceInput")}
-                title={isListening ? t("chatbotStopListening") : t("chatbotVoiceInput")}
+                disabled={isTranscribing}
+                aria-label={
+                  isTranscribing
+                    ? "Transcribing..."
+                    : isListening
+                    ? t("chatbotStopListening")
+                    : t("chatbotVoiceInput")
+                }
+                title={
+                  isTranscribing
+                    ? "Transcribing..."
+                    : isListening
+                    ? t("chatbotStopListening")
+                    : t("chatbotVoiceInput")
+                }
                 className={cn(
                   "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                  isListening
+                  isTranscribing
+                    ? "bg-primary-light text-primary animate-pulse border border-primary/30"
+                    : isListening
                     ? "bg-alert text-white animate-pulse shadow-md"
                     : "bg-surface border border-border text-text hover:bg-primary-light hover:text-primary hover:border-primary/40"
                 )}
               >
-                {isListening ? (
+                {isTranscribing ? (
+                  <Loader2 className="w-[18px] h-[18px] animate-spin text-primary" />
+                ) : isListening ? (
                   <MicOff className="w-[18px] h-[18px]" />
                 ) : (
                   <Mic className="w-[18px] h-[18px]" />

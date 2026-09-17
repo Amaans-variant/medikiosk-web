@@ -117,20 +117,7 @@ export default function TopBar() {
 
 
 
-          {/* High Contrast Toggle */}
-          <button
-            onClick={toggleHighContrast}
-            className={cn(
-              "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border",
-              highContrast 
-                ? "bg-slate-900 text-yellow-300 border-yellow-400 shadow-xs" 
-                : "bg-surface text-text border-border hover:bg-surface-card"
-            )}
-            title="Toggle High Contrast View for Low Vision Accessibility"
-          >
-            <Sun className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">{highContrast ? t("contrast") : t("contrast")}</span>
-          </button>
+
 
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
