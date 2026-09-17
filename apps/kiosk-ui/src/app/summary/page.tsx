@@ -7,17 +7,16 @@ import {
   CheckCircle2, 
   QrCode, 
   Printer, 
-  Stethoscope, 
-  Sparkles, 
   MapPin, 
   Clock,
   Leaf,
-  Info
+  Info,
+  ShieldCheck
 } from "lucide-react";
 
 export default function SummaryStep() {
   const router = useRouter();
-  const { currentPatient, completeIntakeAndEnqueue, setView, resetPatientSession } = useKioskStore();
+  const { currentPatient, completeIntakeAndEnqueue, resetPatientSession } = useKioskStore();
   const [tokenNumber, setTokenNumber] = useState<number>(43);
   const hasEnqueued = useRef<boolean>(false);
 
@@ -117,6 +116,15 @@ export default function SummaryStep() {
             <div className="flex justify-between">
               <span>Primary Complaint:</span>
               <span className="font-semibold text-text">{currentPatient.complaintLabel}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Digital Consent:</span>
+              <span className="font-semibold text-teal flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {currentPatient.consent?.status === "DECLINED" 
+                  ? "Declined (Physical Paper)" 
+                  : "ABDM Verified (DPDP 2023)"}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Care Stream:</span>

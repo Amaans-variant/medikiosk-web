@@ -82,10 +82,10 @@ export default function LoginScreen() {
       {/* Progress Bar */}
       <div className="w-full max-w-[1024px] px-4 sm:px-8 pt-6">
         <div className="h-2 w-full bg-border rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[25%] transition-all duration-500 ease-out" />
+          <div className="h-full bg-gradient-to-r from-teal to-teal-bright w-[60%] transition-all duration-500 ease-out" />
         </div>
         <div className="mt-2 text-text-muted text-xs sm:text-sm font-medium flex justify-between items-center">
-          <span>चरण 1 / 4 · मरीज़ की पहचान (Step 1 of 4 · Identity & ABHA)</span>
+          <span>चरण 3 / 5 · मरीज़ की पहचान (Step 3 of 5 · Identity & ABHA)</span>
           <span className="text-teal font-semibold">ABDM Verification</span>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function LoginScreen() {
       {/* Header Navigation */}
       <header className="w-full max-w-[1024px] px-4 sm:px-8 flex justify-between items-center mt-4 sm:mt-6">
         <button 
-          onClick={() => isOtpMode ? setIsOtpMode(false) : router.push("/consultation-type")}
+          onClick={() => isOtpMode ? setIsOtpMode(false) : router.push("/consent")}
           className="text-primary font-semibold text-base sm:text-lg flex items-center gap-1.5 animate-press"
         >
           <span className="text-xl">←</span> Peeche (Back)

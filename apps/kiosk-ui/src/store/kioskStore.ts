@@ -114,6 +114,17 @@ export interface PatientRecord {
   reinterviewNotes?: string;
   auditLogs?: AuditLogEntry[];
   status: 'waiting' | 'in-consult' | 'completed' | 'rejected' | 'reinterview' | 'pushed';
+  consent?: {
+    granted: boolean;
+    status: 'ACCEPTED' | 'DECLINED' | 'PENDING';
+    timestamp: number;
+    scope?: {
+      intakeHistory: boolean;
+      documentOcr: boolean;
+      physicianSharing: boolean;
+      abdmRecordLinkage: boolean;
+    };
+  };
 }
 
 interface KioskState {
@@ -159,6 +170,17 @@ interface KioskState {
       relievingFactors?: string[];
       summaryDraft?: string;
     };
+    consent: {
+      status: 'ACCEPTED' | 'DECLINED' | 'PENDING';
+      granted: boolean;
+      timestamp?: number;
+      scope: {
+        intakeHistory: boolean;
+        documentOcr: boolean;
+        physicianSharing: boolean;
+        abdmRecordLinkage: boolean;
+      };
+    };
   };
 
   // Shared OPD Queue
@@ -174,6 +196,7 @@ interface KioskState {
   toggleHighContrast: () => void;
   setPatientCategory: (cat: 'self' | 'assisted_minor' | 'assisted_elderly') => void;
   setConsultationType: (type: ConsultationType) => void;
+  setConsentStatus: (status: 'ACCEPTED' | 'DECLINED', scope?: Partial<KioskState['currentPatient']['consent']['scope']>) => void;
   setPatientDemographics: (demographics: Partial<KioskState['currentPatient']>) => void;
   setComplaint: (id: string, label: string) => void;
   toggleComplaint: (id: string, label: string) => void;
@@ -305,7 +328,18 @@ const SEED_QUEUE: PatientRecord[] = [
       }
     ],
     reviewStatus: 'ai_draft',
-    status: 'waiting'
+    status: 'waiting',
+    consent: {
+      granted: true,
+      status: 'ACCEPTED',
+      timestamp: Date.now() - 6 * 60 * 1000,
+      scope: {
+        intakeHistory: true,
+        documentOcr: true,
+        physicianSharing: true,
+        abdmRecordLinkage: true,
+      },
+    },
   },
   {
     id: 'p-101',
@@ -416,7 +450,18 @@ const SEED_QUEUE: PatientRecord[] = [
     ],
     redFlags: [],
     reviewStatus: 'ai_draft',
-    status: 'waiting'
+    status: 'waiting',
+    consent: {
+      granted: true,
+      status: 'ACCEPTED',
+      timestamp: Date.now() - 14 * 60 * 1000,
+      scope: {
+        intakeHistory: true,
+        documentOcr: true,
+        physicianSharing: true,
+        abdmRecordLinkage: true,
+      },
+    },
   },
   {
     id: 'p-103',
@@ -514,7 +559,18 @@ const SEED_QUEUE: PatientRecord[] = [
     reviewStatus: 'doctor_verified',
     verifiedBy: 'Dr. Anand Sharma, MD (Reg #DMC-49210)',
     verifiedAt: Date.now() - 40 * 60 * 1000,
-    status: 'completed'
+    status: 'completed',
+    consent: {
+      granted: true,
+      status: 'ACCEPTED',
+      timestamp: Date.now() - 45 * 60 * 1000,
+      scope: {
+        intakeHistory: true,
+        documentOcr: true,
+        physicianSharing: true,
+        abdmRecordLinkage: true,
+      },
+    },
   },
   {
     id: 'p-104',
@@ -611,7 +667,18 @@ const SEED_QUEUE: PatientRecord[] = [
     ],
     redFlags: [],
     reviewStatus: 'ai_draft',
-    status: 'waiting'
+    status: 'waiting',
+    consent: {
+      granted: true,
+      status: 'ACCEPTED',
+      timestamp: Date.now() - 3 * 60 * 1000,
+      scope: {
+        intakeHistory: true,
+        documentOcr: true,
+        physicianSharing: true,
+        abdmRecordLinkage: true,
+      },
+    },
   }
 ];
 
@@ -670,6 +737,17 @@ export const useKioskStore = create<KioskState>()(
         { test: 'SGPT/ALT', value: '38 U/L', range: '7 – 56 U/L', flag: 'normal', confidence: 0.96 },
       ],
     },
+    consent: {
+      status: 'ACCEPTED',
+      granted: true,
+      timestamp: Date.now() - 10 * 60 * 1000,
+      scope: {
+        intakeHistory: true,
+        documentOcr: true,
+        physicianSharing: true,
+        abdmRecordLinkage: true,
+      },
+    },
   },
 
   queue: SEED_QUEUE,
@@ -704,6 +782,31 @@ export const useKioskStore = create<KioskState>()(
       currentPatient: {
         ...state.currentPatient,
         consultationType: type
+      }
+    })),
+
+  setConsentStatus: (status, scope) =>
+    set((state) => ({
+      currentPatient: {
+        ...state.currentPatient,
+        consent: {
+          status,
+          granted: status === 'ACCEPTED',
+          timestamp: Date.now(),
+          scope: {
+            intakeHistory: scope?.intakeHistory ?? state.currentPatient.consent?.scope?.intakeHistory ?? true,
+            documentOcr: scope?.documentOcr ?? state.currentPatient.consent?.scope?.documentOcr ?? true,
+            physicianSharing: scope?.physicianSharing ?? state.currentPatient.consent?.scope?.physicianSharing ?? true,
+            abdmRecordLinkage: scope?.abdmRecordLinkage ?? state.currentPatient.consent?.scope?.abdmRecordLinkage ?? true,
+          }
+        }
+      },
+      activeSession: {
+        ...state.activeSession,
+        consent: {
+          granted: status === 'ACCEPTED',
+          timestamp: Date.now(),
+        }
       }
     })),
 
@@ -909,6 +1012,17 @@ export const useKioskStore = create<KioskState>()(
           aggravatingFactors: [],
           relievingFactors: [],
           summaryDraft: ""
+        },
+        consent: {
+          status: 'PENDING',
+          granted: false,
+          timestamp: undefined,
+          scope: {
+            intakeHistory: true,
+            documentOcr: true,
+            physicianSharing: true,
+            abdmRecordLinkage: true,
+          }
         }
       }
     });
@@ -1060,6 +1174,17 @@ export const useKioskStore = create<KioskState>()(
       clinicalSummary: draftSummary,
       reviewStatus: "ai_draft",
       status: "waiting",
+      consent: {
+        granted: state.currentPatient.consent?.granted ?? true,
+        status: state.currentPatient.consent?.status ?? 'ACCEPTED',
+        timestamp: state.currentPatient.consent?.timestamp || Date.now(),
+        scope: state.currentPatient.consent?.scope ? { ...state.currentPatient.consent.scope } : {
+          intakeHistory: true,
+          documentOcr: true,
+          physicianSharing: true,
+          abdmRecordLinkage: true,
+        },
+      },
     };
 
     const newQueue = [newRecord, ...state.queue];
@@ -1337,7 +1462,18 @@ export const useKioskStore = create<KioskState>()(
             aggravatingFactors: ["Spicy food", "Late night meals", "Tea"],
             relievingFactors: ["Cold milk", "Antacid syrup"],
             summaryDraft: "45y M presenting with 3-day history of burning epigastric pain and GERD symptoms. Scanned prescription shows Metformin & Pantoprazole. Fasting glucose elevated at 142 mg/dL."
-          }
+          },
+          consent: {
+            status: "ACCEPTED",
+            granted: true,
+            timestamp: Date.now() - 15 * 60 * 1000,
+            scope: {
+              intakeHistory: true,
+              documentOcr: true,
+              physicianSharing: true,
+              abdmRecordLinkage: true,
+            },
+          },
         },
         selectedPatientId: "p-101"
       });
@@ -1380,7 +1516,18 @@ export const useKioskStore = create<KioskState>()(
             aggravatingFactors: ["Exertion", "Deep inspiration"],
             relievingFactors: ["Rest (minimal relief)"],
             summaryDraft: "62y F presenting with acute sudden crushing chest tightness (2 hours), severe diaphoresis, and shortness of breath. Red flag emergency rule triggered."
-          }
+          },
+          consent: {
+            status: "ACCEPTED",
+            granted: true,
+            timestamp: Date.now() - 5 * 60 * 1000,
+            scope: {
+              intakeHistory: true,
+              documentOcr: true,
+              physicianSharing: true,
+              abdmRecordLinkage: true,
+            },
+          },
         },
         selectedPatientId: "p-102"
       });
@@ -1438,7 +1585,18 @@ export const useKioskStore = create<KioskState>()(
             aggravatingFactors: ["Katu-Amla Ahara (Spicy/sour food)", "Late night sleep"],
             relievingFactors: ["Shita-dugdha (Cold milk)"],
             summaryDraft: "38y M presenting for Ayurvedic OPD consultation. Dashavidha Pariksha completed: Pitta-Vata Prakriti with Pitta Vriddhi (Amlapitta). Scanned herbal prescription included."
-          }
+          },
+          consent: {
+            status: "ACCEPTED",
+            granted: true,
+            timestamp: Date.now() - 20 * 60 * 1000,
+            scope: {
+              intakeHistory: true,
+              documentOcr: true,
+              physicianSharing: true,
+              abdmRecordLinkage: true,
+            },
+          },
         },
         selectedPatientId: "p-101"
       });
@@ -1484,6 +1642,17 @@ export const useKioskStore = create<KioskState>()(
           aggravatingFactors: [],
           relievingFactors: [],
           summaryDraft: ""
+        },
+        consent: {
+          status: 'PENDING',
+          granted: false,
+          timestamp: undefined,
+          scope: {
+            intakeHistory: true,
+            documentOcr: true,
+            physicianSharing: true,
+            abdmRecordLinkage: true,
+          }
         }
       }
     });

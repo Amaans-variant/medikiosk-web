@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Noto_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import { THEME_STORAGE_KEY } from "@/store/themeStore";
 
-const notoSans = Noto_Sans({ 
-  subsets: ["latin", "devanagari"],
-  weight: ["400", "500", "600", "700"],
+const localSans = localFont({
+  src: "./fonts/GeistVF.woff",
   variable: "--font-noto-sans",
+  weight: "100 900",
+  fallback: ["Noto Sans", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlashThemeScript }} />
       </head>
-      <body className={`${notoSans.variable} font-sans`}>
+      <body className={`${localSans.variable} font-sans`}>
         <AppShell>
           {children}
         </AppShell>
